@@ -2,7 +2,6 @@
   "name": "cinco-en-linea",
   "version": "1.0.0",
   "description": "Hackaton - Xubio",
-  
   "main": "server.js",
   "scripts": {
     "start": "node ./server.js",
@@ -18,8 +17,6 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.7",
-
     "js-chess-engine": "^0.11.3"
   }
-  
 }
