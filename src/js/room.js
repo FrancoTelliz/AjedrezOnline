@@ -1,3 +1,4 @@
+
 const socket = io.connect("localhost:3977");
 var player, game;
 //import chessgame from '../../server.js'
@@ -67,6 +68,14 @@ init = () => {
     
   });
 
+  /**
+   * 
+   * Este socket recibe el historial de partida, si lo necesitas cambiar de lugar hacia game. hacelo
+   */
+  socket.on("history", (data) => {
+    console.log(data)
+  })
+
   socket.on("endGame", (data) => {
     game.endGameMessage(data.message);
   });
@@ -84,5 +93,9 @@ init = () => {
     game.disconnected();
   });
 };
+
+socket.on("history", (data) => {
+  console.log(data)
+})
 
 init();
