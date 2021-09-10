@@ -65,15 +65,20 @@ init = () => {
     //chessgame.move(letter[col]+row)
 
     let move = { from: letter[col] + row, to: letter[col] + "3" };
-    socket.emit("movement", { room: data.room, move: move });
+    //socket.emit("movement", { room: data.room, move: move });
 
- 
     
+    socket.on("movementIlegal", (data) => {
+
+      alert("Movimiento incorrecto")
       const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
+      game.updateBoard(opponentColor, row, col, data.tile);
+      player.setTurn(true);
+    })
+ 
+    const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
     game.updateBoard(opponentColor, row, col, data.tile);
     player.setTurn(true);
-    
-
     
   });
 

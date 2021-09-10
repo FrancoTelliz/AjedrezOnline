@@ -1,4 +1,3 @@
-
 var timer;
 
 class Game {
@@ -9,6 +8,36 @@ class Game {
   }
 
   createGameBoard() {
+    /**
+     *
+     * Esta funcion checkea el evento si corresponde a un movimiento permitido, si es asi deja usar el manejador de eventos normal
+     * @param {evento} e
+     */
+    function clickHandlerChecked(e) {
+      const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
+      const number = [8, 7, 6, 5, 4, 3, 2, 1];
+      const myArr = e.target.id.split("");
+      const from = letter[myArr[2]] + number[myArr[0]];
+
+      socket.emit("checkMovement", {
+        //from: letter[game.getCol()] + row,
+        //to: letter[game.getCol()] + "3"
+        from: from,
+        to: "B3",
+      },
+      console.log("emite"));
+
+      console.log(from);
+
+      socket.on("movementChecked", (data) => {
+        console.log("recibe")
+        if (data.checked == true) {
+          console.log("checked", data.checked == true);
+          clickHandler(e);
+        }
+      });
+    }
+
     function clickHandler(e) {
       let row, col;
 
@@ -22,12 +51,14 @@ class Game {
       $(".table").removeAttr("style");
 
       game.playTurn(e.target);
+
       game.updateBoard(player.getColor(), row, col, e.target.id);
+
       game.checkWinner();
 
       player.setTurn(false);
     }
-    game.createTiles(clickHandler);
+    game.createTiles(clickHandlerChecked);
     if (player.getColor() != "white" && this.moves == 0) {
       game.setTimer();
     } else {
@@ -35,30 +66,34 @@ class Game {
     }
   }
 
-  createTiles(clickHandler) {
+  createTiles(clickHandlerChecked) {
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 7; j++) {
-        if((j + i) % 2 == 0){
-          $(".table").append(`<button class="tile" id="${i}_${j}" "></button> `);
-        }else{
-          $(".table").append(`<button class="tile" id="${i}_${j}" style="background-color:black;"></button>`);
+        if ((j + i) % 2 == 0) {
+          $(".table").append(
+            `<button class="tile" id="${i}_${j}" "></button> `
+          );
+        } else {
+          $(".table").append(
+            `<button class="tile" id="${i}_${j}" style="background-color:black;"></button>`
+          );
         }
       }
-      if((i) % 2 == 0){
+      if (i % 2 == 0) {
         $(".table").append(
           `<button class="tile" id="${i}_7" style="float:none;background-color:black;"/>`
         );
-        }else{
-          $(".table").append(
-            `<button class="tile" id="${i}_7" style="float:none;background-color:white;"/>`
-          );
-        }
+      } else {
+        $(".table").append(
+          `<button class="tile" id="${i}_7" style="float:none;background-color:white;"/>`
+        );
+      }
     }
 
     for (let i = 0; i < 15; i++) {
       this.board.push([""]);
       for (let j = 0; j < 15; j++) {
-        $(`#${i}_${j}`).on("click", clickHandler);
+        $(`#${i}_${j}`).on("click", clickHandlerChecked);
       }
     }
   }
@@ -92,7 +127,6 @@ class Game {
       }
     }, 1000);
   }
-
 
   displayBoard(message) {
     $(".room").css("display", "none");
@@ -135,15 +169,16 @@ class Game {
   playTurn(tile) {
     const clickedTile = $(tile).attr("id");
 
-    const letter = ["A","B","C","D","E","F","G","H"]
-    const number = [8,7,6,5,4,3,2,1]
+    const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    const number = [8, 7, 6, 5, 4, 3, 2, 1];
     const myArr = clickedTile.split("");
-    const move = letter[myArr[2]]+number[myArr[0]];
+    const from = letter[myArr[2]] + number[myArr[0]];
 
     socket.emit("turn", {
       tile: clickedTile,
       room: this.getRoom(),
-      move: move
+      from: from,
+      to: null,
     });
   }
 
@@ -286,6 +321,4 @@ class Game {
     });
     this.endGameMessage(message);
   }
-
-  
 }

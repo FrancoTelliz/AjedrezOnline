@@ -46,26 +46,57 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("turn", (data) => {
-    const myArr = data.move.split("");
-    console.log(data.move + " " + myArr[0] + 3);
-    //myArr[0]+(myArr[2]+1)
-    try {
-      chessgame.move(data.move, myArr[0] + 3);
 
-      
+  /**
+   * 
+   *  ESTE SOCKET EFECTUA EL MOVIMIENTO EN EL JUEGO
+   */
+  socket.on("turn", (data) => {
+    const myArr = data.from.split("");
+    console.log(data.from + " " + myArr[0] + 3);
+    //myArr[0]+(myArr[2]+1)
+    const checked = true;
+
+    try {
+      chessgame.move(data.from, myArr[0] + 3);
+
+      socket.broadcast.to(data.room).emit("turnPlayed", {
+        tile: data.tile,
+        room: data.room,
+        chess: chessgame.exportJson(),
+        from: data.from,
+        to: null,
+        checked: checked,
+      });
+      console.log("MOVIMIENTO ",data.from, myArr[0] + 3," CORRECTO")
     } catch (error) {
-      socket.emit("movementIlegal", data);
       console.log(error);
     }
+  });
 
-    socket.broadcast.to(data.room).emit("turnPlayed", {
-      tile: data.tile,
-      room: data.room,
-      chess: chessgame.exportJson(),
-      move: data.move,
-    });
 
+  /**
+   * 
+   *  ESTE SOCKET CHECKEA EL MOVIMIENTO Y EMITE LE DA EL PERMISO AL clickHandler(e) de las tiles por medio de un clickHandlerChecked(e)
+   */
+  socket.on("checkMovement", (data) => {
+
+    const myArr = data.from.split("");
+    //console.log(data.from + " " + myArr[0] + 3);
+    console.log(chessgame.moves(data.from).indexOf(myArr[0] + 3)>=0)
+    if (chessgame.moves(data.from).indexOf(myArr[0] + 3)>=0) {
+      socket.emit("movementChecked", {
+        from: data.from,
+        to: null,
+        checked: true,
+      });
+    } else {
+      socket.emit("movementChecked", {
+        from: data.from,
+        to: null,
+        checked: false,
+      });
+    }
   });
 
   socket.on("end", (data) => {
