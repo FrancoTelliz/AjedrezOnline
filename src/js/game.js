@@ -18,7 +18,7 @@ class Game {
       const number = [8, 7, 6, 5, 4, 3, 2, 1];
       const myArr = e.target.id.split("");
       const from = letter[myArr[2]] + number[myArr[0]];
-
+      
       socket.emit("checkMovement", {
         //from: letter[game.getCol()] + row,
         //to: letter[game.getCol()] + "3"
@@ -29,6 +29,10 @@ class Game {
 
       console.log(from);
 
+      /**
+       * 
+       * Este socket escucha si el movimiento que se quiere hacer es permitido
+       */
       socket.on("movementChecked", (data) => {
         console.log("recibe")
         if (data.checked == true) {

@@ -60,21 +60,6 @@ init = () => {
     let row = game.getRow(data.tile);
     let col = game.getCol(data.tile);
     console.log(data.chess);
-
-    letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
-    //chessgame.move(letter[col]+row)
-
-    let move = { from: letter[col] + row, to: letter[col] + "3" };
-    //socket.emit("movement", { room: data.room, move: move });
-
-    
-    socket.on("movementIlegal", (data) => {
-
-      alert("Movimiento incorrecto")
-      const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
-      game.updateBoard(opponentColor, row, col, data.tile);
-      player.setTurn(true);
-    })
  
     const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
     game.updateBoard(opponentColor, row, col, data.tile);
@@ -87,7 +72,7 @@ init = () => {
   });
 
   socket.on("movementIlegal", (data) => {
-    alert("Movimiento no permitido: " + data.move + " to ");
+    alert("Movimiento no permitido: " + data.from + " to ", data.to);
   });
 
   socket.on("err", (data) => {

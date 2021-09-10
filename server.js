@@ -80,7 +80,6 @@ io.on("connection", (socket) => {
    *  ESTE SOCKET CHECKEA EL MOVIMIENTO Y EMITE LE DA EL PERMISO AL clickHandler(e) de las tiles por medio de un clickHandlerChecked(e)
    */
   socket.on("checkMovement", (data) => {
-
     const myArr = data.from.split("");
     //console.log(data.from + " " + myArr[0] + 3);
     console.log(chessgame.moves(data.from).indexOf(myArr[0] + 3)>=0)
@@ -96,6 +95,7 @@ io.on("connection", (socket) => {
         to: null,
         checked: false,
       });
+      socket.emit("movementIlegal",data)
     }
   });
 
