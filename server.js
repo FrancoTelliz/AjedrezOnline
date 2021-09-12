@@ -48,20 +48,26 @@ io.on("connection", (socket) => {
 
   socket.on("turn", (data) => {
     const myArr = data.move.split("");
+   
     console.log(data.move + " " + myArr[0] + 3);
     //myArr[0]+(myArr[2]+1)
+    const checked = true;
     try {
       chessgame.move(data.move, myArr[0] + 3);
-
+      
       
     } catch (error) {
       socket.emit("movementIlegal", data);
       console.log(error);
     }
-
+    
     socket.broadcast.to(data.room).emit("turnPlayed", {
+      
+      previus: data.previus,
+      next: data.next,
       tile: data.tile,
       room: data.room,
+      previusTile: data.previusTile,
       chess: chessgame.exportJson(),
       move: data.move,
     });
@@ -97,5 +103,7 @@ function remove(room) {
   var index = roomsList.indexOf(parseInt(room));
   if (index !== -1) roomsList.splice(index, 1);
 }
+
+
 
 httpServer.listen(PORT);

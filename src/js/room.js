@@ -38,7 +38,7 @@ init = () => {
   });
 
   socket.on("newGame", (data) => {
-    const message = "Game ID: " + data.room;
+    const message = "Sala ID: " + data.room;
 
     game = new Game(data.room);
     game.displayBoard(message);
@@ -49,7 +49,7 @@ init = () => {
   });
 
   socket.on("playerTwo", (data) => {
-    const message = "Partida ID: " + data.room;
+    const message = "Sala ID: " + data.room;
 
     game = new Game(data.room);
     game.displayBoard(message);
@@ -57,24 +57,30 @@ init = () => {
   });
 
   socket.on("turnPlayed", (data) => {
-    let row = game.getRow(data.tile);
-    let col = game.getCol(data.tile);
-    console.log(data.chess);
 
-    letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
-    //chessgame.move(letter[col]+row)
+      let row = game.getRow(data.tile);
+      let col = game.getCol(data.tile);
 
-    let move = { from: letter[col] + row, to: letter[col] + "3" };
-    socket.emit("movement", { room: data.room, move: move });
+      console.log(data.chess);
+      pieceOrigin = `${row, col}`
+      //compruebo que se selecciona un button con una figura
+      
+      letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
- 
-    
+      
       const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
-    game.updateBoard(opponentColor, row, col, data.tile);
-    player.setTurn(true);
-    
 
-    
+      $(`#${data.tile}`).html($(`#${data.previusTile}`).html());
+      $(`#${data.previusTile}`).html(``);
+
+      game.clearBoard(data.tile, data.previusTile);
+
+
+      game.updateBoard("#D24379", row, col, data.tile);
+      game.updateBoard("#D24379", data.previus[0],data.previus[1], data.previusTile);
+
+    player.setTurn(true);
+
   });
 
   socket.on("endGame", (data) => {
@@ -82,7 +88,7 @@ init = () => {
   });
 
   socket.on("movementIlegal", (data) => {
-    alert("Movimiento no permitido: " + data.move + " to ");
+    //alert("Movimiento no permitido: " + data.move + " to ");
   });
 
   socket.on("err", (data) => {
