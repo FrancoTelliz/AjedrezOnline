@@ -2,7 +2,7 @@
 var timer;
 var clicks = 0;
 var posicionAnterior = " ";
-var posicionSiguiente = " " ;
+var posicionSiguiente = " ";
 var colAnterior = 0;
 var rowAnterior = 0;
 var colSiguiente = 0;
@@ -44,18 +44,18 @@ class Game {
      * Esta funcion checkea el evento si corresponde a un movimiento permitido, si es asi deja usar el manejador de eventos normal
      * @param {evento} e
      */
-     function clickHandlerChecked(e) {
+    function clickHandlerChecked(e) {
       let row, col;
       const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
       const number = [8, 7, 6, 5, 4, 3, 2, 1];
-     //const myArr = e.target.id.split("");
-      
+      //const myArr = e.target.id.split("");
+
 
       row = game.getRow(e.target.id);
       col = game.getCol(e.target.id);
 
-       //RESETEO DE POSICIONES
-       if(posicionAnterior!== " " && posicionSiguiente !==" "){
+      //RESETEO DE POSICIONES
+      if (posicionAnterior !== " " && posicionSiguiente !== " ") {
         posicionSiguiente = " ";
         posicionAnterior = " ";
       }
@@ -77,32 +77,34 @@ class Game {
 
         $(".table").removeAttr("style");
 
-       
+
         game.updateBoard('#D24379', row, col, e.target.id);
-     
+
         clicks++;
 
         if (clicks == 1) {
           colAnterior = col;
           rowAnterior = row;
           posicionAnterior = row + "_" + col;
-  
+
         } if (clicks == 2) {
           posicionSiguiente = row + "_" + col;
           colSiguiente = col;
           rowSiguiente = row;
         }
 
-        if (clicks == 2  ) {
+        if (clicks == 2) {
 
+          
           const from = letter[colAnterior] + number[rowAnterior];
-          const to =  letter[colSiguiente] + number[rowSiguiente];
+          const to = letter[colSiguiente] + number[rowSiguiente];
           console.log(from, to);
           socket.emit("checkMovement", {
             from: from,
             to: to,
           },
           );
+          //$(`#${posicionAnterior}`).html(` `);
         } else {
           player.setTurn(true);
         }
@@ -110,7 +112,7 @@ class Game {
 
       }
 
-      
+
 
       /**
        * 
@@ -121,7 +123,7 @@ class Game {
         if (data.checked == true) {
           console.log("checked", data.checked == true);
           clickHandler(e);
-        }else{
+        } else {
           //game.clearAllPosition();
           game.clearFirstPosition(posicionAnterior);
           clicks = 0;
@@ -143,10 +145,10 @@ class Game {
 
       game.playTurn(e.target);
 
-      $(`#${posicionSiguiente}`).html($(`#${posicionAnterior}`).html());
-      $(`#${posicionAnterior}`).html(``);
+    /*   $(`#${posicionSiguiente}`).html($(`#${posicionAnterior}`).html());
+      $(`#${posicionAnterior}`).html(``); */
       game.clearBoard(posicionAnterior, posicionSiguiente);
-
+      game.placePieces();
       clicks = 0;
 
       //game.updateBoard(player.getColor(), row, col, e.target.id);
@@ -198,27 +200,93 @@ class Game {
 
 
   placePieces() {
-    for (let i = 0; i < 8; i += 1) {
-      $(`#${1}_${i}`).html(`${pieces.pawn[0]}`)
-      $(`#${6}_${i}`).html(`${pieces.pawn[1]}`)
+    const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    
+    const number = [8, 7, 6, 5, 4, 3, 2, 1, 0];
+    var i_j;
+    var idCell;
+    socket.emit("placePieces");
+    game.clearAllPieces();
+    socket.on("places", (data) => {
 
-      for (let i = 0; i < 8; i += 1) {
-        $(`#${i * 7}_${0}`).html(`${i ? pieces.rook[1] : pieces.rook[0]}`);
-        $(`#${i * 7}_${7}`).html(`${i ? pieces.rook[1] : pieces.rook[0]}`);
+     /*  Object.keys(data.chess.pieces).forEach(position => {
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 8; j++) {
+            i_j = letter[i] + number[j];
+            idCell = j + "_" + i;
+            
+            if (position == i_j) {
 
-        $(`#${i * 7}_${1}`).html(`${i ? pieces.knight[1] : pieces.knight[0]}`);
-        $(`#${i * 7}_${6}`).html(`${i ? pieces.knight[1] : pieces.knight[0]}`);
+              game.printPieces(data.chess.pieces[position], idCell)
+  
+            } else {
+              
+            }
+          }
 
-        $(`#${i * 7}_${2}`).html(`${i ? pieces.bishop[1] : pieces.bishop[0]}`);
-        $(`#${i * 7}_${5}`).html(`${i ? pieces.bishop[1] : pieces.bishop[0]}`);
+        }
+      }); */
 
-        $(`#${i * 7}_${3}`).html(`${i ? pieces.queen[1] : pieces.queen[0]}`);
+      Object.keys(data.chess.pieces).forEach(position => {
+      
+        var posicion = position.split("");
 
-        $(`#${i * 7}_${4}`).html(`${i ? pieces.king[1] : pieces.king[0]}`);
+        i_j =  (number[posicion[1]]) +"_"+ letter.indexOf(posicion[0]);
+  
+        game.printPieces(data.chess.pieces[position], i_j);
 
-      }
+      });
+
+    });
+
+
+  }
+
+  printPieces(piece, idCell) {
+    switch (piece) {
+      //BLANCASS
+      case "P":
+        $(`#${idCell}`).html(`${pieces.pawn[1]}`)
+        break;
+      case "N":
+        $(`#${idCell}`).html(`${pieces.knight[1]}`)
+        break;
+      case "B":
+        $(`#${idCell}`).html(`${pieces.bishop[1]}`)
+        break;
+      case "R":
+        $(`#${idCell}`).html(`${pieces.rook[1]}`)
+        break;
+      case "Q":
+        $(`#${idCell}`).html(`${pieces.queen[1]}`)
+        break;
+
+      case "K":
+        $(`#${idCell}`).html(`${pieces.king[1]}`)
+        break;
+
+      //NEGRAS
+      case "p":
+        $(`#${idCell}`).html(`${pieces.pawn[0]}`)
+        break;
+      case "n":
+        $(`#${idCell}`).html(`${pieces.knight[0]}`)
+        break;
+      case "b":
+        $(`#${idCell}`).html(`${pieces.bishop[0]}`)
+        break;
+      case "r":
+        $(`#${idCell}`).html(`${pieces.rook[0]}`)
+        break;
+      case "q":
+        $(`#${idCell}`).html(`${pieces.queen[0]}`)
+        break;
+      case "k":
+        $(`#${idCell}`).html(`${pieces.king[0]}`)
+        break;
+
+
     }
-
   }
 
   setTimer() {
@@ -267,7 +335,7 @@ class Game {
     this.moves++;
   }
 
-  getClicks(){
+  getClicks() {
     return clicks;
   }
   getRow(id) {
@@ -284,27 +352,27 @@ class Game {
     return this.room;
   }
 
-  getPosicionAnterior(){
+  getPosicionAnterior() {
     return posicionAnterior;
   }
 
-  getColAnterior(){
+  getColAnterior() {
     return colAnterior;
   }
 
-  getRowAnterior(){
+  getRowAnterior() {
     return rowAnterior;
   }
 
-  getColSiguiente(){
+  getColSiguiente() {
     return colSiguiente;
   }
 
-  getRowSiguiente(){
+  getRowSiguiente() {
     return rowSiguiente;
   }
 
-  getPosicionSiguiente(){
+  getPosicionSiguiente() {
     return posicionSiguiente;
   }
 
@@ -313,16 +381,16 @@ class Game {
     const clickedTile = $(tile).attr("id");
     const previusTile = game.getPosicionAnterior();
     const nextTile = game.getPosicionSiguiente();
-    console.log("playturn:" +game.getPosicionAnterior());
+    console.log("playturn:" + game.getPosicionAnterior());
     const letter = ["A", "B", "C", "D", "E", "F", "G", "H"]
     const number = [8, 7, 6, 5, 4, 3, 2, 1]
     const from = letter[colAnterior] + number[rowAnterior];
-    const to =  letter[colSiguiente] + number[rowSiguiente];
+    const to = letter[colSiguiente] + number[rowSiguiente];
     console.log("entra a playTurn");
     socket.emit("turn", {
 
-      previus: [game.getRowAnterior(),game.getColAnterior()],
-      next: [game.getRowSiguiente(),game.getColSiguiente()],
+      previus: [game.getRowAnterior(), game.getColAnterior()],
+      next: [game.getRowSiguiente(), game.getColSiguiente()],
       tile: clickedTile,
       nextTile: nextTile,
       previusTile: previusTile,
@@ -360,97 +428,8 @@ class Game {
     }
   }
 
-  /*   horizontal(color) {
-      let value;
-      for (let row = 0; row < 8; row++) {
-        value = 0;
-        for (let col = 0; col < 8; col++) {
-          if (game.board[row][col] != color) {
-            value = 0;
-          } else {
-            value++;
-          }
-          if (value == 5) {
-            this.winner();
-            return;
-          }
-        }
-      }
-    } */
-
-  /*   vertical(color) {
-      let value;
-      for (let col = 0; col < 8; col++) {
-        value = 0;
-        for (let row = 0; row < 8; row++) {
-          if (game.board[row][col] != color) {
-            value = 0;
-          } else {
-            value++;
-          }
-          if (value == 5) {
-            this.winner();
-            return;
-          }
-        }
-      }
-    } */
-
-  /* 
-    diagonal(color) {
-      for (let col = 0; col < 8; col++) {
-        if (col > 4) {
-          for (let row = 0; row < 8; row++) {
-            let match = true;
-            for (let i = 0; i < 5; i++) {
-              if (color != game.board[row + i][col - i]) match = false;
-            }
-  
-            if (match) {
-              this.winner();
-              return;
-            }
-          }
-        }
-      }
-    }
-   */
-  /*  diagonalReverse(color) {
-     for (let col = 0; col < 8; col++) {
-       for (let row = 0; row < 8; row++) {
-         let match = true;
-         for (let i = 0; i < 5; i++) {
-           if (color != game.board[row + i][col + i]) match = false;
-         }
-         if (match) {
-           this.winner();
-           return;
-         }
-       }
-     }
-   } */
-
-  /*  checkWinner() {
-     let color = player.getColor()[0];
- 
-     this.horizontal(color);
-     this.vertical(color);
-     this.diagonal(color);
-     this.diagonalReverse(color);
- 
-     if (this.checkDraw()) {
-       const message = "¡Empate!";
- 
-       socket.emit("end", {
-         room: this.getRoom(),
-         message: message,
-       });
-       this.endGameMessage(message);
-     }
-   } */
-
   checkDraw() {
-    return this.moves >= 8 * 8;
+    return this.moves >= 5 * 10;
   }
 
   disconnected() {
@@ -474,18 +453,18 @@ class Game {
   }
 
 
-  clearBoard(p1 , p2) {
+  clearBoard(p1, p2) {
     //console.log("entra");
-   // console.log(posicionAnterior, posicionSiguiente);
+    // console.log(posicionAnterior, posicionSiguiente);
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 7; j++) {
 
-       if (`${i}_${j}` != p1 && `${i}_${j}` != p2) {
+        if (`${i}_${j}` != p1 && `${i}_${j}` != p2) {
           if ((i + j) % 2 == 0) {
-            
-            $(`#${i}_${j}`).css("background-color",`${theme.light}`)
+
+            $(`#${i}_${j}`).css("background-color", `${theme.light}`)
           } else {
-            $(`#${i}_${j}`).css("background-color",`${theme.dark}`)
+            $(`#${i}_${j}`).css("background-color", `${theme.dark}`)
           }
         }
 
@@ -498,37 +477,44 @@ class Game {
           $(`#${i}_7`).css("background-color", `${theme.light}`)
         }
       }
-      
+
     }
   }
 
   clearFirstPosition(p1) {
-    //console.log("entra");
-   // console.log(posicionAnterior, posicionSiguiente);
+
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 7; j++) {
 
-       if (`${i}_${j}` == p1 ) {
+        if (`${i}_${j}` == p1) {
           if ((i + j) % 2 == 0) {
-            
-            $(`#${i}_${j}`).css("background-color",`${theme.light}`)
+
+            $(`#${i}_${j}`).css("background-color", `${theme.light}`)
           } else {
-            $(`#${i}_${j}`).css("background-color",`${theme.dark}`)
+            $(`#${i}_${j}`).css("background-color", `${theme.dark}`)
           }
         }
 
       }
 
-      if (`${i}_7` == p1 ) {
+      if (`${i}_7` == p1) {
         if ((i) % 2 == 0) {
           $(`#${i}_7`).css("background-color", `${theme.dark}`)
         } else {
           $(`#${i}_7`).css("background-color", `${theme.light}`)
         }
       }
-      
+
     }
   }
 
-  
+
+  clearAllPieces() {
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+          $(`#${i}_${j}`).html(` `)
+      }
+    }
+  }
+
 }

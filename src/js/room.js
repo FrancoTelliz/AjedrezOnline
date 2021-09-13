@@ -72,11 +72,11 @@ init = () => {
       
       const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
 
-      $(`#${data.nextTile}`).html($(`#${data.previusTile}`).html());
-      $(`#${data.previusTile}`).html(``);
+      game.placePieces();
 
       game.clearBoard(data.tile, data.previusTile);
 
+      //$(`#${data.previusTile}`).html(` `);
 
       game.updateBoard("#D24379", row, col, data.nextTile);
       game.updateBoard("#D24379", data.previus[0],data.previus[1], data.previusTile);

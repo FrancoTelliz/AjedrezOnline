@@ -152,6 +152,14 @@ io.on("connection", (socket) => {
      chessgame = new jsChessEngine.Game();
   });
 
+  socket.on("placePieces", () =>{
+    console.log(chessgame.exportJson());
+    socket.emit("places", {
+      hola: "hola",
+      chess: chessgame.exportJson(),
+    });
+ });
+
 });
 
 
