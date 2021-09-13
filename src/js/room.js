@@ -60,8 +60,10 @@ init = () => {
 
       let row = game.getRow(data.tile);
       let col = game.getCol(data.tile);
+    console.log(data.tile, data.previus);
 
       console.log(data.chess);
+      console.log("check: " + data.previusTile, data.nextTile);
       pieceOrigin = `${row, col}`
       //compruebo que se selecciona un button con una figura
       
@@ -70,13 +72,13 @@ init = () => {
       
       const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
 
-      $(`#${data.tile}`).html($(`#${data.previusTile}`).html());
+      $(`#${data.nextTile}`).html($(`#${data.previusTile}`).html());
       $(`#${data.previusTile}`).html(``);
 
       game.clearBoard(data.tile, data.previusTile);
 
 
-      game.updateBoard("#D24379", row, col, data.tile);
+      game.updateBoard("#D24379", row, col, data.nextTile);
       game.updateBoard("#D24379", data.previus[0],data.previus[1], data.previusTile);
 
     player.setTurn(true);
@@ -99,6 +101,19 @@ init = () => {
   socket.on("userDisconnect", () => {
     game.disconnected();
   });
+
+    /**
+   * 
+   * Este socket recibe el historial de partida, si lo necesitas cambiar de lugar hacia game. hacelo
+   */
+     socket.on("history", (data) => {
+      console.log(data)
+    });
+    
+    socket.on("movementIlegal", (data) => {
+      alert("Movimiento no permitido: " + data.from + " to ", data.to);
+    });
+    
 };
 
 init();

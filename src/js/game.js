@@ -10,7 +10,7 @@ var rowSiguiente = 0;
 
 const theme = {
   light: '#EFF3F4',
-  dark: '#0F3547',
+  dark: '#0075B0',
 }
 
 const pieceTheme = {
@@ -30,6 +30,7 @@ const pieces = {
 class Game {
 
   constructor(room) {
+    socket.emit("newGameChess");
     this.room = room;
     this.board = [];
     this.moves = 0;
@@ -38,28 +39,37 @@ class Game {
 
   createGameBoard() {
 
-    function clickHandler(e) {
+    /**
+     *
+     * Esta funcion checkea el evento si corresponde a un movimiento permitido, si es asi deja usar el manejador de eventos normal
+     * @param {evento} e
+     */
+     function clickHandlerChecked(e) {
       let row, col;
+      const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
+      const number = [8, 7, 6, 5, 4, 3, 2, 1];
+     //const myArr = e.target.id.split("");
+      
+
       row = game.getRow(e.target.id);
       col = game.getCol(e.target.id);
 
-      //resetee posiciones
-      if(posicionAnterior!== " " && posicionSiguiente !==" "){
+       //RESETEO DE POSICIONES
+       if(posicionAnterior!== " " && posicionSiguiente !==" "){
         posicionSiguiente = " ";
         posicionAnterior = " ";
       }
-      console.log(player.getColor());
-      //comprueba que no se este seleccione una casilla sin pieza
+
+      //SE COMPRUEBA QUE LA CASILLA SELECCIONADA TENGA UNA PUEZA
       if ($(`#${row}_${col}`).html().length !== 0 || clicks > 0) {
 
-        if (clicks == 1 && posicionSiguiente == " " ) {
-          
+        /* if (clicks == 1 && posicionSiguiente == " " ) {
           if ($(`#${row}_${col}`).html().length !== 0) {
             game.clearFirstPosition(posicionAnterior);
             clicks = 0;
             return;
           }
-        }
+        } */
 
         if (!player.getTurn() || !game) {
           return;
@@ -84,24 +94,69 @@ class Game {
         }
 
         if (clicks == 2  ) {
-          
-          $(`#${posicionSiguiente}`).html($(`#${posicionAnterior}`).html());
-          $(`#${posicionAnterior}`).html(``);
-          game.clearBoard(posicionAnterior, posicionSiguiente);
-          game.playTurn(e.target);
 
-          player.setTurn(false);
-   
-          clicks = 0;
+          const from = letter[colAnterior] + number[rowAnterior];
+          const to =  letter[colSiguiente] + number[rowSiguiente];
+          console.log(from, to);
+          socket.emit("checkMovement", {
+            from: from,
+            to: to,
+          },
+          );
         } else {
           player.setTurn(true);
         }
+
+
       }
+
       
 
+      /**
+       * 
+       * Este socket escucha si el movimiento que se quiere hacer es permitido
+       */
+      socket.on("movementChecked", (data) => {
+        console.log("recibe")
+        if (data.checked == true) {
+          console.log("checked", data.checked == true);
+          clickHandler(e);
+        }else{
+          //game.clearAllPosition();
+          game.clearFirstPosition(posicionAnterior);
+          clicks = 0;
+        }
+      });
     }
 
-    game.createTiles(clickHandler);
+    function clickHandler(e) {
+      let row, col;
+
+      row = game.getRow(e.target.id);
+      col = game.getCol(e.target.id);
+
+      if (!player.getTurn() || !game) {
+        return;
+      }
+
+      $(".table").removeAttr("style");
+
+      game.playTurn(e.target);
+
+      $(`#${posicionSiguiente}`).html($(`#${posicionAnterior}`).html());
+      $(`#${posicionAnterior}`).html(``);
+      game.clearBoard(posicionAnterior, posicionSiguiente);
+
+      clicks = 0;
+
+      //game.updateBoard(player.getColor(), row, col, e.target.id);
+
+      //game.checkWinner();
+
+      player.setTurn(false);
+    }
+
+    game.createTiles(clickHandlerChecked);
 
     if (player.getColor() != "white" && this.moves == 0) {
       game.setTimer();
@@ -111,7 +166,7 @@ class Game {
 
   }
 
-  createTiles(clickHandler) {
+  createTiles(clickHandlerChecked) {
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 7; j++) {
         if ((i + j) % 2 == 0) {
@@ -136,7 +191,7 @@ class Game {
     for (let i = 0; i < 8; i++) {
       this.board.push([""]);
       for (let j = 0; j < 8; j++) {
-        $(`#${i}_${j}`).on("click", clickHandler);
+        $(`#${i}_${j}`).on("click", clickHandlerChecked);
       }
     }
   }
@@ -151,11 +206,11 @@ class Game {
         $(`#${i * 7}_${0}`).html(`${i ? pieces.rook[1] : pieces.rook[0]}`);
         $(`#${i * 7}_${7}`).html(`${i ? pieces.rook[1] : pieces.rook[0]}`);
 
-        $(`#${i * 7}_${1}`).html(`${i ? pieces.bishop[1] : pieces.bishop[0]}`);
-        $(`#${i * 7}_${6}`).html(`${i ? pieces.bishop[1] : pieces.bishop[0]}`);
+        $(`#${i * 7}_${1}`).html(`${i ? pieces.knight[1] : pieces.knight[0]}`);
+        $(`#${i * 7}_${6}`).html(`${i ? pieces.knight[1] : pieces.knight[0]}`);
 
-        $(`#${i * 7}_${2}`).html(`${i ? pieces.knight[1] : pieces.knight[0]}`);
-        $(`#${i * 7}_${5}`).html(`${i ? pieces.knight[1] : pieces.knight[0]}`);
+        $(`#${i * 7}_${2}`).html(`${i ? pieces.bishop[1] : pieces.bishop[0]}`);
+        $(`#${i * 7}_${5}`).html(`${i ? pieces.bishop[1] : pieces.bishop[0]}`);
 
         $(`#${i * 7}_${3}`).html(`${i ? pieces.queen[1] : pieces.queen[0]}`);
 
@@ -254,21 +309,26 @@ class Game {
   }
 
   playTurn(tile) {
+
     const clickedTile = $(tile).attr("id");
     const previusTile = game.getPosicionAnterior();
+    const nextTile = game.getPosicionSiguiente();
+    console.log("playturn:" +game.getPosicionAnterior());
     const letter = ["A", "B", "C", "D", "E", "F", "G", "H"]
     const number = [8, 7, 6, 5, 4, 3, 2, 1]
-    const myArr = clickedTile.split("");
-    const move = letter[myArr[2]] + number[myArr[0]];
-    console.log("move: " + move);
+    const from = letter[colAnterior] + number[rowAnterior];
+    const to =  letter[colSiguiente] + number[rowSiguiente];
+    console.log("entra a playTurn");
     socket.emit("turn", {
 
       previus: [game.getRowAnterior(),game.getColAnterior()],
       next: [game.getRowSiguiente(),game.getColSiguiente()],
       tile: clickedTile,
+      nextTile: nextTile,
       previusTile: previusTile,
       room: this.getRoom(),
-      move: move
+      from: from,
+      to: to,
     });
   }
 
@@ -470,4 +530,5 @@ class Game {
     }
   }
 
+  
 }
