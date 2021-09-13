@@ -4,8 +4,8 @@ var player, game;
 //import chessgame from '../../server.js'
 
 init = () => {
-  const p1Color = "white";
-  const p2Color = "black";
+  const p1Color = "black";
+  const p2Color = "white";
 
   setInterval(() => {
     socket.emit("rooms");
@@ -39,7 +39,7 @@ init = () => {
   });
 
   socket.on("newGame", (data) => {
-    const message = "Game ID: " + data.room;
+    const message = "Sala ID: " + data.room;
 
     game = new Game(data.room);
     game.displayBoard(message);
@@ -50,7 +50,7 @@ init = () => {
   });
 
   socket.on("playerTwo", (data) => {
-    const message = "Partida ID: " + data.room;
+    const message = "Sala ID: " + data.room;
 
     game = new Game(data.room);
     game.displayBoard(message);
@@ -58,14 +58,34 @@ init = () => {
   });
 
   socket.on("turnPlayed", (data) => {
-    let row = game.getRow(data.tile);
-    let col = game.getCol(data.tile);
-    console.log(data.chess);
- 
-    const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
-    game.updateBoard(opponentColor, row, col, data.tile);
+
+      let row = game.getRow(data.tile);
+      let col = game.getCol(data.tile);
+    console.log(data.tile, data.previus);
+
+      
+
+      console.log(data.chess);
+      console.log("check: " + data.previusTile, data.nextTile);
+      pieceOrigin = `${row, col}`
+      //compruebo que se selecciona un button con una figura
+      
+      letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
+      
+      const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;
+
+      game.placePieces();
+
+      game.clearBoard(data.tile, data.previusTile);
+
+      //$(`#${data.previusTile}`).html(` `);
+
+      game.updateBoard("#D24379", row, col, data.nextTile);
+      game.updateBoard("#D24379", data.previus[0],data.previus[1], data.previusTile);
+      //console.log("checkMate: ", data.checkMate);
     player.setTurn(true);
-    
+
   });
 
   /**
@@ -81,7 +101,7 @@ init = () => {
   });
 
   socket.on("movementIlegal", (data) => {
-    alert("Movimiento no permitido: " + data.from + " to ", data.to);
+    //alert("Movimiento no permitido: " + data.move + " to ");
   });
 
   socket.on("err", (data) => {
@@ -92,6 +112,25 @@ init = () => {
   socket.on("userDisconnect", () => {
     game.disconnected();
   });
+
+    /**
+   * 
+   * Este socket recibe el historial de partida, si lo necesitas cambiar de lugar hacia game. hacelo
+   */
+     socket.on("history", (data) => {
+      console.log(data)
+    });
+    
+    socket.on("movementIlegal", (data) => {
+      alert("Movimiento no permitido: " + data.from + " to " + data.to);
+    });
+
+    /* socket.on("checkMate", (data)=>{
+      console.log();
+      if(data)
+        game.winner();
+    }); */
+    
 };
 
 socket.on("history", (data) => {

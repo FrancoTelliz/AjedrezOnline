@@ -1,33 +1,117 @@
 var timer;
+var clicks = 0;
+var posicionAnterior = " ";
+var posicionSiguiente = " ";
+var colAnterior = 0;
+var rowAnterior = 0;
+var colSiguiente = 0;
+var rowSiguiente = 0;
+
+const theme = {
+  light: '#EFF3F4',
+  dark: '#0075B0',
+}
+
+const pieceTheme = {
+  light: '#FFFFFF',
+  dark: '#000000',
+}
+// 	♔,♕,♖,♗,♘,♙
+const pieces = {
+  king: ['♚', '♔'],
+  queen: ['♛', '♕'],
+  rook: ['♜', '♖'],
+  bishop: ['♝', '♗'],
+  knight: ['♞', '♘'],
+  pawn: ['&#9823', '&#9817'],
+}
 
 class Game {
+
   constructor(room) {
+    socket.emit("newGameChess");
     this.room = room;
     this.board = [];
     this.moves = 0;
+
   }
 
   createGameBoard() {
+
     /**
      *
      * Esta funcion checkea el evento si corresponde a un movimiento permitido, si es asi deja usar el manejador de eventos normal
      * @param {evento} e
      */
     function clickHandlerChecked(e) {
+      let row, col;
       const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
       const number = [8, 7, 6, 5, 4, 3, 2, 1];
-      const myArr = e.target.id.split("");
-      const from = letter[myArr[2]] + number[myArr[0]];
-      
-      socket.emit("checkMovement", {
-        //from: letter[game.getCol()] + row,
-        //to: letter[game.getCol()] + "3"
-        from: from,
-        to: "B3",
-      },
-      console.log("emite"));
+      //const myArr = e.target.id.split("");
 
-      console.log(from);
+
+      row = game.getRow(e.target.id);
+      col = game.getCol(e.target.id);
+
+      //RESETEO DE POSICIONES
+      if (posicionAnterior !== " " && posicionSiguiente !== " ") {
+        posicionSiguiente = " ";
+        posicionAnterior = " ";
+      }
+
+      //SE COMPRUEBA QUE LA CASILLA SELECCIONADA TENGA UNA PUEZA
+      if ($(`#${row}_${col}`).html().length !== 0 || clicks > 0) {
+
+        /* if (clicks == 1 && posicionSiguiente == " " ) {
+          if ($(`#${row}_${col}`).html().length !== 0) {
+            game.clearFirstPosition(posicionAnterior);
+            clicks = 0;
+            return;
+          }
+        } */
+
+        if (!player.getTurn() || !game) {
+          return;
+        }
+
+        $(".table").removeAttr("style");
+
+
+        game.updateBoard('#D24379', row, col, e.target.id);
+
+        clicks++;
+
+        if (clicks == 1) {
+          colAnterior = col;
+          rowAnterior = row;
+          posicionAnterior = row + "_" + col;
+
+        } if (clicks == 2) {
+          posicionSiguiente = row + "_" + col;
+          colSiguiente = col;
+          rowSiguiente = row;
+        }
+
+        if (clicks == 2) {
+
+          
+          const from = letter[colAnterior] + number[rowAnterior];
+          const to = letter[colSiguiente] + number[rowSiguiente];
+          console.log(from, to);
+          socket.emit("checkMovement", {
+            from: from,
+            to: to,
+          },
+          );
+          //$(`#${posicionAnterior}`).html(` `);
+        } else {
+          player.setTurn(true);
+        }
+
+
+      }
+
+
 
       /**
        * 
@@ -37,7 +121,12 @@ class Game {
         console.log("recibe")
         if (data.checked == true) {
           console.log("checked", data.checked == true);
+          console.log("checkMate: ", data.checkMate);
           clickHandler(e);
+        } else {
+          //game.clearAllPosition();
+          game.clearFirstPosition(posicionAnterior);
+          clicks = 0;
         }
       });
     }
@@ -56,64 +145,160 @@ class Game {
 
       game.playTurn(e.target);
 
-      game.updateBoard(player.getColor(), row, col, e.target.id);
+    /*   $(`#${posicionSiguiente}`).html($(`#${posicionAnterior}`).html());
+      $(`#${posicionAnterior}`).html(``); */
+      game.clearBoard(posicionAnterior, posicionSiguiente);
+      game.placePieces();
+      clicks = 0;
 
-      game.checkWinner();
+      //game.updateBoard(player.getColor(), row, col, e.target.id);
+      socket.on("checkMate", (data)=>{
+        console.log();
+        if(data.value){
+            var color = data.color == "white" ? "black" : "white";
+            game.winner(color);
+        }
+    
+      });
+      //game.checkWinner();
 
       player.setTurn(false);
     }
+
     game.createTiles(clickHandlerChecked);
+
     if (player.getColor() != "white" && this.moves == 0) {
       game.setTimer();
     } else {
       $(".table").prop("disabled", true);
     }
+
   }
 
   createTiles(clickHandlerChecked) {
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 7; j++) {
-        if ((j + i) % 2 == 0) {
-          $(".table").append(
-            `<button class="tile" id="${i}_${j}" "></button> `
-          );
+        if ((i + j) % 2 == 0) {
+          $(".table").append(`<button class="tile" id="${i}_${j}" "style="background-color:${theme.light}, font-size: 300px;"></button> `);
         } else {
-          $(".table").append(
-            `<button class="tile" id="${i}_${j}" style="background-color:black;"></button>`
-          );
+          $(".table").append(`<button class="tile" id="${i}_${j}" style="background-color:${theme.dark} ;"></button>`);
         }
       }
-      if (i % 2 == 0) {
+      if ((i) % 2 == 0) {
         $(".table").append(
-          `<button class="tile" id="${i}_7" style="float:none;background-color:black;"/>`
+          `<button class="tile" id="${i}_7" style="float:none;background-color:${theme.dark} ;"></button>`
         );
       } else {
         $(".table").append(
-          `<button class="tile" id="${i}_7" style="float:none;background-color:white;"/>`
+          `<button class="tile" id="${i}_7" style="float:none;background-color:${theme.light} ;"></button>`
         );
       }
     }
 
-    for (let i = 0; i < 15; i++) {
+    game.placePieces();
+
+    for (let i = 0; i < 8; i++) {
       this.board.push([""]);
-      for (let j = 0; j < 15; j++) {
+      for (let j = 0; j < 8; j++) {
         $(`#${i}_${j}`).on("click", clickHandlerChecked);
       }
+    }
+  }
+
+
+  placePieces() {
+    const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    
+    const number = [8, 7, 6, 5, 4, 3, 2, 1, 0];
+    var i_j;
+    var idCell;
+    socket.emit("placePieces");
+    game.clearAllPieces();
+    socket.on("places", (data) => {
+
+     /*  Object.keys(data.chess.pieces).forEach(position => {
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 8; j++) {
+            i_j = letter[i] + number[j];
+            idCell = j + "_" + i;
+            
+            if (position == i_j) {
+
+              game.printPieces(data.chess.pieces[position], idCell)
+  
+            } else {
+              
+            }
+          }
+
+        }
+      }); */
+
+      Object.keys(data.chess.pieces).forEach(position => {
+      
+        var posicion = position.split("");
+
+        i_j =  (number[posicion[1]]) +"_"+ letter.indexOf(posicion[0]);
+  
+        game.printPieces(data.chess.pieces[position], i_j);
+
+      });
+
+    });
+
+
+  }
+
+  printPieces(piece, idCell) {
+    switch (piece) {
+      //BLANCASS
+      case "P":
+        $(`#${idCell}`).html(`${pieces.pawn[1]}`)
+        break;
+      case "N":
+        $(`#${idCell}`).html(`${pieces.knight[1]}`)
+        break;
+      case "B":
+        $(`#${idCell}`).html(`${pieces.bishop[1]}`)
+        break;
+      case "R":
+        $(`#${idCell}`).html(`${pieces.rook[1]}`)
+        break;
+      case "Q":
+        $(`#${idCell}`).html(`${pieces.queen[1]}`)
+        break;
+
+      case "K":
+        $(`#${idCell}`).html(`${pieces.king[1]}`)
+        break;
+
+      //NEGRAS
+      case "p":
+        $(`#${idCell}`).html(`${pieces.pawn[0]}`)
+        break;
+      case "n":
+        $(`#${idCell}`).html(`${pieces.knight[0]}`)
+        break;
+      case "b":
+        $(`#${idCell}`).html(`${pieces.bishop[0]}`)
+        break;
+      case "r":
+        $(`#${idCell}`).html(`${pieces.rook[0]}`)
+        break;
+      case "q":
+        $(`#${idCell}`).html(`${pieces.queen[0]}`)
+        break;
+      case "k":
+        $(`#${idCell}`).html(`${pieces.king[0]}`)
+        break;
+
+
     }
   }
 
   setTimer() {
     timer = setInterval(() => {
       var time = player.getTime();
-
-      if (time == 7 || time == 5 || time <= 3) {
-        $(".table")
-          .css("background-color", "#d33473")
-          .css("box-shadow", "0px 0px 30px 5px rgb(211 52 115 / 75%)");
-      } else {
-        $(".table").removeAttr("style");
-      }
-
       --player.time;
 
       if (player.getTime() == -9999999999999999999) {
@@ -147,15 +332,18 @@ class Game {
     $(".table").prop("disabled", true);
     if (!player.getTurn()) {
       game.setTimer();
-      $(".table").prop("disabled", false);
+      // $(".table").prop("disabled", false);
     }
     $(`#${tile}`)
-      .css("backgroundImage", `url(../image/${color}.png)`)
-      .prop("disabled", true);
+      .css("backgroundColor", `${color}`)
+    //.prop("disabled", true);
     this.board[row][col] = color[0];
     this.moves++;
   }
 
+  getClicks() {
+    return clicks;
+  }
   getRow(id) {
     let row = id.split("_")[0];
     return row;
@@ -170,19 +358,51 @@ class Game {
     return this.room;
   }
 
+  getPosicionAnterior() {
+    return posicionAnterior;
+  }
+
+  getColAnterior() {
+    return colAnterior;
+  }
+
+  getRowAnterior() {
+    return rowAnterior;
+  }
+
+  getColSiguiente() {
+    return colSiguiente;
+  }
+
+  getRowSiguiente() {
+    return rowSiguiente;
+  }
+
+  getPosicionSiguiente() {
+    return posicionSiguiente;
+  }
+
   playTurn(tile) {
+
     const clickedTile = $(tile).attr("id");
-
-    const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
-    const number = [8, 7, 6, 5, 4, 3, 2, 1];
-    const myArr = clickedTile.split("");
-    const from = letter[myArr[2]] + number[myArr[0]];
-
+    const previusTile = game.getPosicionAnterior();
+    const nextTile = game.getPosicionSiguiente();
+    console.log("playturn:" + game.getPosicionAnterior());
+    const letter = ["A", "B", "C", "D", "E", "F", "G", "H"]
+    const number = [8, 7, 6, 5, 4, 3, 2, 1]
+    const from = letter[colAnterior] + number[rowAnterior];
+    const to = letter[colSiguiente] + number[rowSiguiente];
+    console.log("entra a playTurn");
     socket.emit("turn", {
+
+      previus: [game.getRowAnterior(), game.getColAnterior()],
+      next: [game.getRowSiguiente(), game.getColSiguiente()],
       tile: clickedTile,
+      nextTile: nextTile,
+      previusTile: previusTile,
       room: this.getRoom(),
       from: from,
-      to: null,
+      to: to,
     });
   }
 
@@ -214,76 +434,96 @@ class Game {
     }
   }
 
-  horizontal(color) {
-    let value;
-    for (let row = 0; row < 15; row++) {
-      value = 0;
-      for (let col = 0; col < 15; col++) {
-        if (game.board[row][col] != color) {
-          value = 0;
-        } else {
-          value++;
-        }
-        if (value == 5) {
-          this.winner();
-          return;
-        }
-      }
-    }
+  checkDraw() {
+    return this.moves >= 5 * 10;
   }
 
-  vertical(color) {
-    let value;
-    for (let col = 0; col < 15; col++) {
-      value = 0;
-      for (let row = 0; row < 15; row++) {
-        if (game.board[row][col] != color) {
-          value = 0;
-        } else {
-          value++;
-        }
-        if (value == 5) {
-          this.winner();
-          return;
-        }
-      }
-    }
+  disconnected() {
+    const message = "Jugador desconectado";
+
+    socket.emit("end", {
+      room: this.getRoom(),
+      message: message,
+    });
+    this.endGameMessage(message);
   }
 
-  diagonal(color) {
-    for (let col = 0; col < 15; col++) {
-      if (col > 4) {
-        for (let row = 0; row < 10; row++) {
-          let match = true;
-          for (let i = 0; i < 5; i++) {
-            if (color != game.board[row + i][col - i]) match = false;
-          }
+  winner(color) {
+    const message = color;
+    console.log("color del jugador: " , message);
+    socket.emit("end", {
+      room: this.getRoom(),
+      message: message,
+    });
+    this.endGameMessage(message);
+  }
 
-          if (match) {
-            this.winner();
-            return;
+
+  clearBoard(p1, p2) {
+    //console.log("entra");
+    // console.log(posicionAnterior, posicionSiguiente);
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 7; j++) {
+
+        if (`${i}_${j}` != p1 && `${i}_${j}` != p2) {
+          if ((i + j) % 2 == 0) {
+
+            $(`#${i}_${j}`).css("background-color", `${theme.light}`)
+          } else {
+            $(`#${i}_${j}`).css("background-color", `${theme.dark}`)
           }
         }
+
       }
+
+      if (`${i}_7` != p1 || `${i}_7` != p2) {
+        if ((i) % 2 == 0) {
+          $(`#${i}_7`).css("background-color", `${theme.dark}`)
+        } else {
+          $(`#${i}_7`).css("background-color", `${theme.light}`)
+        }
+      }
+
     }
   }
 
-  diagonalReverse(color) {
-    for (let col = 0; col < 10; col++) {
-      for (let row = 0; row < 10; row++) {
-        let match = true;
-        for (let i = 0; i < 5; i++) {
-          if (color != game.board[row + i][col + i]) match = false;
+  clearFirstPosition(p1) {
+
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 7; j++) {
+
+        if (`${i}_${j}` == p1) {
+          if ((i + j) % 2 == 0) {
+
+            $(`#${i}_${j}`).css("background-color", `${theme.light}`)
+          } else {
+            $(`#${i}_${j}`).css("background-color", `${theme.dark}`)
+          }
         }
-        if (match) {
-          this.winner();
-          return;
+
+      }
+
+      if (`${i}_7` == p1) {
+        if ((i) % 2 == 0) {
+          $(`#${i}_7`).css("background-color", `${theme.dark}`)
+        } else {
+          $(`#${i}_7`).css("background-color", `${theme.light}`)
         }
       }
+
     }
   }
 
-  checkWinner() {
+
+  clearAllPieces() {
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+          $(`#${i}_${j}`).html(` `)
+      }
+    }
+  }
+  
+  /* checkWinner() {
     let color = player.getColor()[0];
 
     this.horizontal(color);
@@ -300,29 +540,6 @@ class Game {
       });
       this.endGameMessage(message);
     }
-  }
+  } */
 
-  checkDraw() {
-    return this.moves >= 15 * 15;
-  }
-
-  disconnected() {
-    const message = "Jugador desconectado";
-
-    socket.emit("end", {
-      room: this.getRoom(),
-      message: message,
-    });
-    this.endGameMessage(message);
-  }
-
-  winner() {
-    const message = player.getColor();
-
-    socket.emit("end", {
-      room: this.getRoom(),
-      message: message,
-    });
-    this.endGameMessage(message);
-  }
 }
