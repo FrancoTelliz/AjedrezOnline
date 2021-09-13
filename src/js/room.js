@@ -3,8 +3,8 @@ var player, game;
 //import chessgame from '../../server.js'
 
 init = () => {
-  const p1Color = "white";
-  const p2Color = "black";
+  const p1Color = "black";
+  const p2Color = "white";
 
   setInterval(() => {
     socket.emit("rooms");
@@ -62,6 +62,8 @@ init = () => {
       let col = game.getCol(data.tile);
     console.log(data.tile, data.previus);
 
+      
+
       console.log(data.chess);
       console.log("check: " + data.previusTile, data.nextTile);
       pieceOrigin = `${row, col}`
@@ -80,7 +82,7 @@ init = () => {
 
       game.updateBoard("#D24379", row, col, data.nextTile);
       game.updateBoard("#D24379", data.previus[0],data.previus[1], data.previusTile);
-
+      //console.log("checkMate: ", data.checkMate);
     player.setTurn(true);
 
   });
@@ -111,8 +113,14 @@ init = () => {
     });
     
     socket.on("movementIlegal", (data) => {
-      alert("Movimiento no permitido: " + data.from + " to ", data.to);
+      alert("Movimiento no permitido: " + data.from + " to " + data.to);
     });
+
+    /* socket.on("checkMate", (data)=>{
+      console.log();
+      if(data)
+        game.winner();
+    }); */
     
 };
 

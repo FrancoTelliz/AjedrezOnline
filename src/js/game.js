@@ -122,6 +122,7 @@ class Game {
         console.log("recibe")
         if (data.checked == true) {
           console.log("checked", data.checked == true);
+          console.log("checkMate: ", data.checkMate);
           clickHandler(e);
         } else {
           //game.clearAllPosition();
@@ -152,7 +153,14 @@ class Game {
       clicks = 0;
 
       //game.updateBoard(player.getColor(), row, col, e.target.id);
-
+      socket.on("checkMate", (data)=>{
+        console.log();
+        if(data.value){
+            var color = data.color == "white" ? "black" : "white";
+            game.winner(color);
+        }
+    
+      });
       //game.checkWinner();
 
       player.setTurn(false);
@@ -442,9 +450,9 @@ class Game {
     this.endGameMessage(message);
   }
 
-  winner() {
-    const message = player.getColor();
-
+  winner(color) {
+    const message = color;
+    console.log("color del jugador: " , message);
     socket.emit("end", {
       room: this.getRoom(),
       message: message,
@@ -516,5 +524,24 @@ class Game {
       }
     }
   }
+  
+  /* checkWinner() {
+    let color = player.getColor()[0];
+
+    this.horizontal(color);
+    this.vertical(color);
+    this.diagonal(color);
+    this.diagonalReverse(color);
+
+    if (this.checkDraw()) {
+      const message = "¡Empate!";
+
+      socket.emit("end", {
+        room: this.getRoom(),
+        message: message,
+      });
+      this.endGameMessage(message);
+    }
+  } */
 
 }

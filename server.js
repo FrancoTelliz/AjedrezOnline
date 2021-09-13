@@ -92,6 +92,12 @@ io.on("connection", (socket) => {
         });
       });
 
+      if(getCheckMate()){
+        socket.broadcast.emit("checkMate", {
+          value: true,
+          color: getColorPlayer(),
+        });
+      }
 
     } catch (error) {
       console.log(error);
@@ -105,23 +111,26 @@ io.on("connection", (socket) => {
    *  ESTE SOCKET CHECKEA EL MOVIMIENTO Y EMITE LE DA EL PERMISO AL clickHandler(e) de las tiles por medio de un clickHandlerChecked(e)
    */
   socket.on("checkMovement", (data) => {
-    //const myArr = data.from.split("");
-    //console.log(data.from + " " + myArr[0] + 3);
 
+    
     if (chessgame.moves(data.from).indexOf(data.to) >= 0) {
       socket.emit("movementChecked", {
         from: data.from,
         to: data.to,
         checked: true,
+        checkMate: getCheckMate(),
       });
     } else {
       socket.emit("movementChecked", {
         from: data.from,
         to: data.to,
         checked: false,
+        checkMate: getCheckMate(),
       });
       socket.emit("movementIlegal", data);
     }
+
+   
   });
 
   socket.on("end", (data) => {
@@ -153,7 +162,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("placePieces", () =>{
-    console.log(chessgame.exportJson());
+    //console.log(chessgame.exportJson());
     socket.emit("places", {
       hola: "hola",
       chess: chessgame.exportJson(),
@@ -168,4 +177,11 @@ function remove(room) {
   if (index !== -1) roomsList.splice(index, 1);
 }
 
+function getCheckMate(){
+  return  chessgame.exportJson().checkMate;
+}
+
+function getColorPlayer(){
+  return  chessgame.exportJson().turn;
+}
 httpServer.listen(PORT);
