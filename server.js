@@ -72,6 +72,12 @@ io.on("connection", (socket) => {
         from: data.from,
         to: data.to,
         checked: checked,
+        
+      i_jaque: data.i_jaque,
+      j_jaque: data.j_jaque,
+      i_j_jaque: data.i_j_jaque,
+      is_jaque: data.is_jaque,
+
       });
       console.log("MOVIMIENTO ", data.from, data.to, " CORRECTO");
 
@@ -97,6 +103,14 @@ io.on("connection", (socket) => {
           value: true,
           color: getColorPlayer(),
         });
+      }
+
+      if (getCheck()) {
+          socket.emit("check", {
+            value: chessgame.exportJson().check,
+            color: getColorPlayer(),
+            position: getCheckKing(),
+          })
       }
 
     } catch (error) {
@@ -169,6 +183,10 @@ io.on("connection", (socket) => {
     });
  });
 
+ socket.on("checkServer", (data) => {
+  socket.broadcast.to(data.room).emit("checkPlayer2", data)
+});
+
 });
 
 
@@ -181,6 +199,27 @@ function getCheckMate(){
   return  chessgame.exportJson().checkMate;
 }
 
+function getCheck() {
+  return chessgame.exportJson().check;
+  //return true;
+}
+
+function getCheckKing() {
+
+  var pieces = chessgame.exportJson().pieces;
+
+  if (getCheck() && (getColorPlayer() == "white")) {
+    return getKeyByValue(pieces,"K")
+  }
+   if (getCheck() && (getColorPlayer() == "black")) {
+     return getKeyByValue(pieces, "k")
+   }
+}
+
+
+function getKeyByValue(object, value) {
+  return Object.keys(object).find(key => object[key] === value);
+}
 function getColorPlayer(){
   return  chessgame.exportJson().turn;
 }
