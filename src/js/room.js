@@ -72,7 +72,7 @@ init = () => {
     console.log("check: " + data.previusTile, data.nextTile);
     pieceOrigin = `${(row, col)}`;
     //compruebo que se selecciona un button con una figura
-
+    game.setTimer()
     letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
     const opponentColor = player.getColor() === p1Color ? p2Color : p1Color;

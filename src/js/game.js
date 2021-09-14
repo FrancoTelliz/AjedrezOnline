@@ -175,17 +175,21 @@ class Game {
       });
       //game.checkWinner();
       isStarting = true;
+
+      /* 
+      if (player.getColor() != "black" && isStarting) {
+        game.setTimer();
+        console.log("ENTRA EN EL IF DEL TIEMPO")
+      } else {
+        $(".table").prop("disabled", true);
+      } */
+      
       player.setTurn(false);
     }
 
     game.createTiles(clickHandlerChecked);
 
-    if (player.getColor() != "black" && this.moves==0) {
-      game.setTimer();
-      console.log("ENTRA EN EL IF DEL TIEMPO")
-    } else {
-      $(".table").prop("disabled", true);
-    }
+    
   }
 
   createTiles(clickHandlerChecked) {
