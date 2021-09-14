@@ -42,6 +42,10 @@ init = () => {
 
     game = new Game(data.room);
     game.displayBoard(message);
+
+    $(".player").append(
+      `<h2 id="black">Juegas con Negras ♚</h2>`
+    );
   });
 
   socket.on("playerOne", () => {
@@ -50,6 +54,10 @@ init = () => {
 
   socket.on("playerTwo", (data) => {
     const message = "Sala ID: " + data.room;
+
+    $(".player").append(
+      `<h2 id="white">Juegas con Blancas ♔</h2>`
+    );
 
     game = new Game(data.room);
     game.displayBoard(message);
@@ -60,7 +68,6 @@ init = () => {
     let row = game.getRow(data.tile);
     let col = game.getCol(data.tile);
     console.log(data.tile, data.previus);
-
     console.log(data.chess);
     console.log("check: " + data.previusTile, data.nextTile);
     pieceOrigin = `${(row, col)}`;
@@ -87,14 +94,6 @@ init = () => {
     player.setTurn(true);
   });
 
-  /**
-   *
-   * Este socket recibe el historial de partida, si lo necesitas cambiar de lugar hacia game. hacelo
-   */
-  socket.on("history", (data) => {
-    console.log(data);
-  });
-
   socket.on("endGame", (data) => {
     game.endGameMessage(data.message);
   });
@@ -112,14 +111,6 @@ init = () => {
     game.disconnected();
   });
 
-  /**
-   *
-   * Este socket recibe el historial de partida, si lo necesitas cambiar de lugar hacia game. hacelo
-   */
-  socket.on("history", (data) => {
-    console.log(data);
-  });
-
   socket.on("movementIlegal", (data) => {
     alert("Movimiento no permitido: " + data.from + " to " + data.to);
   });
@@ -135,11 +126,10 @@ init = () => {
 
   });
 
-  socket.on("history", (data) => {
-    console.log(data);
-  });
+  socket.on("historyToRoom", (data)=> {
 
-
+    console.log(data)
+  })
 
 };
 

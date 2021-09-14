@@ -10,6 +10,7 @@ var i_jaque = 0;
 var j_jaque = 0;
 var i_j_jaque ="";
 var is_jaque = false;
+var isStarting = false;
 
 const theme = {
   light: "#EFF3F4",
@@ -61,7 +62,7 @@ class Game {
 
       game.isCheck();
 
-      //SE COMPRUEBA QUE LA CASILLA SELECCIONADA TENGA UNA PUEZA
+      //SE COMPRUEBA QUE LA CASILLA SELECCIONADA TENGA UNA PIEZA
       if ($(`#${row}_${col}`).html() !== " " || clicks > 0) {
         if (clicks == 1 && $(`#${row}_${col}`).html() !== " ") {
           if ($(`#${row}_${col}`).html().length !== 0) {
@@ -100,6 +101,7 @@ class Game {
             from: from,
             to: to,
           });
+          
           //$(`#${posicionAnterior}`).html(` `);
         } else {
           player.setTurn(true);
@@ -115,6 +117,7 @@ class Game {
         if (data.checked == true) {
           console.log("checked", data.checked == true);
           console.log("checkMate: ", data.checkMate);
+          isStarting = false;
           clickHandler(e);
         } else {
           //game.clearAllPosition();
@@ -126,6 +129,14 @@ class Game {
 
     function clickHandler(e) {
       let row, col;
+      
+      /**
+       *
+       * Este socket recibe el historial de partida, si lo necesitas cambiar de lugar hacia game. hacelo
+       */
+      socket.on("historyToGame", (data) => {
+        console.log(data)
+      });
 
       row = game.getRow(e.target.id);
       col = game.getCol(e.target.id);
@@ -146,26 +157,32 @@ class Game {
 
       //game.updateBoard(player.getColor(), row, col, e.target.id);
       socket.on("checkMate", (data) => {
-        console.log();
         if (data.value) {
           var color = data.color == "white" ? "black" : "white";
           game.winner(color);
         }
       });
 
+      socket.on("empate", (data)=> {
+        if (data.value) {
+          game.empate();
+        }
+      })
+
       socket.on("check", (data) => {
         if (data.value) {
         }
       });
       //game.checkWinner();
-
+      isStarting = true;
       player.setTurn(false);
     }
 
     game.createTiles(clickHandlerChecked);
 
-    if (player.getColor() != "white" && this.moves == 0) {
+    if (player.getColor() != "black" && this.moves==0) {
       game.setTimer();
+      console.log("ENTRA EN EL IF DEL TIEMPO")
     } else {
       $(".table").prop("disabled", true);
     }
@@ -292,7 +309,11 @@ class Game {
       var time = player.getTime();
       --player.time;
 
-      if (player.getTime() == -9999999999999999999) {
+      $(".time").html(
+        `${player.time}`
+      );
+
+      if (player.getTime() == 0) {
         let message;
 
         message = player.getColor() == "white" ? "black" : "white";
@@ -319,12 +340,7 @@ class Game {
   }
 
   updateBoard(color, row, col, tile) {
-    clearInterval(timer);
-    $(".table").prop("disabled", true);
-    if (!player.getTurn()) {
-      game.setTimer();
-      // $(".table").prop("disabled", false);
-    }
+    
     $(`#${tile}`).css("backgroundColor", `${color}`);
     //.prop("disabled", true);
     this.board[row][col] = color[0];
@@ -391,24 +407,21 @@ class Game {
       room: this.getRoom(),
       from: from,
       to: to,
-      i_jaque: i_jaque,
-      j_jaque: j_jaque,
-      i_j_jaque: i_j_jaque,
-      is_jaque: is_jaque,
     });
   }
 
   endGameMessage(message) {
+    isStarting = false;
     clearInterval(timer);
     $(".tile").attr("disabled", true);
 
     if (message == player.color) {
-      message = "ganaste";
+      message = "ganaste!";
       printMessage();
     } else if (message.includes("desconectado")) {
       $("#turn").text(message);
-    } else if (message.includes("Empate")) {
-      message = "empate";
+    } else if (message.includes("Tablas")) {
+      message = "tablas";
       printMessage();
     } else {
       message = "perdiste";
@@ -443,6 +456,15 @@ class Game {
   winner(color) {
     const message = color;
     console.log("color del jugador: ", message);
+    socket.emit("end", {
+      room: this.getRoom(),
+      message: message,
+    });
+    this.endGameMessage(message);
+  }
+
+  empate() {
+    const message = "¡Tablas!";
     socket.emit("end", {
       room: this.getRoom(),
       message: message,
@@ -533,6 +555,16 @@ class Game {
 
       }
     });
+  }
+
+  startTimer() {
+    clearInterval(timer);
+    $(".table").prop("disabled", true);
+    this.moves++;
+    if (!player.getTurn()) {
+      game.setTimer();
+      $(".table").prop("disabled", false);
+    }
   }
 
   /* checkWinner() {

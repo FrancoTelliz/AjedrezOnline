@@ -72,19 +72,16 @@ io.on("connection", (socket) => {
         from: data.from,
         to: data.to,
         checked: checked,
-        
-      i_jaque: data.i_jaque,
-      j_jaque: data.j_jaque,
-      i_j_jaque: data.i_j_jaque,
-      is_jaque: data.is_jaque,
-
       });
       console.log("MOVIMIENTO ", data.from, data.to, " CORRECTO");
 
       let movements = [];
       let cont = 0;
+
+      /*
       chessgame.getHistory().forEach((mov) => {
-        getTo = mov.from;
+
+         getTo = mov.from;
         movements.push({
           from: mov.from,
           to: mov.to,
@@ -92,11 +89,12 @@ io.on("connection", (socket) => {
           piece: mov.configuration.pieces[getTo],
           number: cont++,
         });
-  
-        socket.broadcast.to(data.room).emit("history", {
-          movements,
-        });
-      });
+   */
+
+
+        socket.broadcast.to(data.room).emit("historyToRoom", `${data.from} - ${data.to}`);
+        socket.emit("historyToGame", `${data.from} - ${data.to}`)
+      
 
       if(getCheckMate()){
         socket.broadcast.emit("checkMate", {
@@ -113,6 +111,12 @@ io.on("connection", (socket) => {
           })
       }
 
+      if(getEmpate()){
+        socket.emit("empate", {
+          value: true,
+        });
+      }
+
     } catch (error) {
       console.log(error);
     }
@@ -125,14 +129,13 @@ io.on("connection", (socket) => {
    *  ESTE SOCKET CHECKEA EL MOVIMIENTO Y EMITE LE DA EL PERMISO AL clickHandler(e) de las tiles por medio de un clickHandlerChecked(e)
    */
   socket.on("checkMovement", (data) => {
-
-    
     if (chessgame.moves(data.from).indexOf(data.to) >= 0) {
       socket.emit("movementChecked", {
         from: data.from,
         to: data.to,
         checked: true,
         checkMate: getCheckMate(),
+        isFinished: getEmpate(),
       });
     } else {
       socket.emit("movementChecked", {
@@ -140,10 +143,10 @@ io.on("connection", (socket) => {
         to: data.to,
         checked: false,
         checkMate: getCheckMate(),
+        isFinished: getEmpate(),
       });
       socket.emit("movementIlegal", data);
     }
-
    
   });
 
@@ -199,15 +202,16 @@ function getCheckMate(){
   return  chessgame.exportJson().checkMate;
 }
 
+function getEmpate() {
+  return (chessgame.exportJson().isFinished && !(chessgame.exportJson().checkMate)) || (chessgame.exportJson().halfMove == 50);
+}
+
 function getCheck() {
   return chessgame.exportJson().check;
-  //return true;
 }
 
 function getCheckKing() {
-
   var pieces = chessgame.exportJson().pieces;
-
   if (getCheck() && (getColorPlayer() == "white")) {
     return getKeyByValue(pieces,"K")
   }
