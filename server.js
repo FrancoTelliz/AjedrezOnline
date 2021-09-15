@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
     var room = io.sockets.adapter.rooms[data.room];
 
     if (room.length !== 1) {
-      socket.emit("err", { message: "Partida cerrada" });
+      socket.emit("err", { message: "Partida comenzada" });
     } else {
       socket.join(data.room);
       socket.broadcast.to(data.room).emit("playerOne");
@@ -53,13 +53,12 @@ io.on("connection", (socket) => {
    *  ESTE SOCKET EFECTUA EL MOVIMIENTO EN EL JUEGO
    */
   socket.on("turn", (data) => {
-    //const myArr = data.from.split("");
-    //console.log(data.from + " " + myArr[0] + 3);
-    //myArr[0]+(myArr[2]+1)
+
     const checked = true;
 
     try {
       chessgame.move(data.from, data.to);
+
 
       socket.broadcast.to(data.room).emit("turnPlayed", {
         previusTile: data.previusTile,
@@ -92,8 +91,6 @@ io.on("connection", (socket) => {
    */
 
 
-        socket.broadcast.to(data.room).emit("historyToRoom", `${data.from} - ${data.to}`);
-        socket.emit("historyToGame", `${data.from} - ${data.to}`)
       
 
       if(getCheckMate()){
@@ -117,6 +114,10 @@ io.on("connection", (socket) => {
         });
       }
 
+
+      socket.broadcast.to(data.room).emit("historyToRoom", `${data.from} - ${data.to}`);
+      socket.emit("historyToGame", `${data.from} - ${data.to}`)
+      
     } catch (error) {
       console.log(error);
     }
@@ -227,4 +228,5 @@ function getKeyByValue(object, value) {
 function getColorPlayer(){
   return  chessgame.exportJson().turn;
 }
+
 httpServer.listen(PORT);
