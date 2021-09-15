@@ -81,9 +81,13 @@ body .container .wrap .game .side-bar{
   width: 100px;
   box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.75);
   background: #006D7C;
+  /*
   padding-right: 30px;
-  padding-bottom: 50px;
+  padding-bottom: 20px;
   padding-left: 30px;
+  */
+  padding: 1.5rem;
+  margin-bottom: 10px;
   border: 2px solid #d0d0d0;
   border-radius: 10px;
   
@@ -114,16 +118,25 @@ body .container .wrap .game .side-history{
   width: 100px;
   text-align: center;
   box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.75);
+  /*
   padding-right: 30px;
   padding-bottom: 50px;
   padding-left: 30px;
+  */
+  padding: 1.5rem;
   background: #006D7C;
   border: 2px solid #d0d0d0;
   color: white;
   border-radius: 10px;
 }
 
+body .container .wrap .game .side-history .title-history {
+  margin-bottom: 0px;
+}
 
+body .container .wrap .game .side-history .p-history {
+  margin-top: 0px;
+}
 
 body .container .wrap header .logo #description img {
   margin-left: 5px;

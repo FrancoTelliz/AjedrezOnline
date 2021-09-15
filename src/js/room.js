@@ -142,8 +142,8 @@ init = () => {
   });
 
   socket.on("historyToRoom", (data) => {
-    $(".over").append(
-      `<p>${data}</p>`
+    $(".over").html(
+      `<p class="p-history">${data}</p>`
     );
   })
 
