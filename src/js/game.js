@@ -332,6 +332,7 @@ class Game {
     $("#logo").css("display", "none");
     $(".game").css("display", "block");
     $("#roomID").html(message);
+    $(".background-gradient").css("background", "linear-gradient(72.36deg, #0F3547 1.88%, #004874 53.89%)");
     this.createGameBoard();
   }
 
