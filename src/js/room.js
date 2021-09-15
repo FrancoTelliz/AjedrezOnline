@@ -1,6 +1,5 @@
 const socket = io.connect("localhost:3977");
 var player, game;
-//import chessgame from '../../server.js'
 
 init = () => {
   const p1Color = "black";
@@ -44,19 +43,21 @@ init = () => {
     game.displayBoard(message);
 
     $(".player").append(
-      `<h2 id="black">Juegas con Negras ♚</h2>`
+      `<h3 id="black">Juegas con Negras ♚</h3>`
     );
   });
 
   socket.on("playerOne", () => {
+    $(".audio")[0].play();
     player.setTurn(false);
   });
 
   socket.on("playerTwo", (data) => {
+    $(".audio")[0].play();
     const message = "Sala ID: " + data.room;
 
     $(".player").append(
-      `<h2 id="white">Juegas con Blancas ♔</h2>`
+      `<h3 id="white">Juegas con Blancas ♔</h3>`
     );
 
     game = new Game(data.room);
@@ -71,6 +72,8 @@ init = () => {
     console.log(data.chess);
     console.log("check: " + data.previusTile, data.nextTile);
     pieceOrigin = `${(row, col)}`;
+
+
     //compruebo que se selecciona un button con una figura
     game.setTimer()
     letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -81,8 +84,6 @@ init = () => {
 
     game.clearBoard(data.tile, data.previusTile);
 
-    //$(`#${data.previusTile}`).html(` `);
-
     game.updateBoard("#52AE32", row, col, data.nextTile);
     game.updateBoard(
       "#8dba7d",
@@ -90,7 +91,7 @@ init = () => {
       data.previus[1],
       data.previusTile
     );
-    //console.log("checkMate: ", data.checkMate);
+    $(".audioMove")[0].play();
     player.setTurn(true);
   });
 
@@ -98,9 +99,6 @@ init = () => {
     game.endGameMessage(data.message);
   });
 
-  socket.on("movementIlegal", (data) => {
-    //alert("Movimiento no permitido: " + data.move + " to ");
-  });
 
   socket.on("err", (data) => {
     alert(data.message);
@@ -112,23 +110,41 @@ init = () => {
   });
 
   socket.on("movementIlegal", (data) => {
+
     alert("Movimiento no permitido: " + data.from + " to " + data.to);
+
+
+    /*SE TRANFORMA EL DATA.FROM A FORMATO I_J PARA DESPINTAR LA CASILLA*/
+
+    const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    var i, j, i_j
+    const number = [8, 7, 6, 5, 4, 3, 2, 1, 0];
+
+    var posicion = data.to.split("");
+
+    i = number[posicion[1]];
+    j = letter.indexOf(posicion[0]);
+
+    i_j = i + "_" + j;
+
+    if ((i + j) % 2 == 0) {
+      $(`#${i}_${j}`).css("background-color", `${theme.light}`);
+    } else {
+      $(`#${i}_${j}`).css("background-color", `${theme.dark}`);
+    }
+
   });
 
-  /* socket.on("checkMate", (data)=>{
-      console.log();
-      if(data)
-        game.winner();
-    }); */
-
   socket.on("checkPlayer2", (data) => {
+    $(".audioCheck")[0].play();
     $(`#${data.i_j_jaque}`).css("backgroundColor", "#D24379");
 
   });
 
-  socket.on("historyToRoom", (data)=> {
-
-    console.log(data)
+  socket.on("historyToRoom", (data) => {
+    $(".over").append(
+      `<p>${data}</p>`
+    );
   })
 
 };
