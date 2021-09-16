@@ -218,6 +218,12 @@ class Game {
 
       socket.on("checkMate", (data) => {
         if (data.value) {
+          const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
+          const number = [8, 7, 6, 5, 4, 3, 2, 1, 0];
+          var i_j;
+          var posicion = data.position.split("");
+          i_j = number[posicion[1]] + "_" + letter.indexOf(posicion[0]);
+          $(`#${i_j}`).css("backgroundColor", "#D24379");
           var color = data.color == "white" ? "black" : "white";
           game.winner(color);
         }

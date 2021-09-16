@@ -2,7 +2,7 @@ class Player {
   constructor(color) {
     this.color = color;
     this.turn = false;
-    this.time = 300;
+    this.time = 600;
   }
 
   getColor() {

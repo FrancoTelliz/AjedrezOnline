@@ -82,6 +82,7 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("checkMate", {
           value: true,
           color: getColorPlayer(),
+          position: getCheckKing(),
         });
       }
 
