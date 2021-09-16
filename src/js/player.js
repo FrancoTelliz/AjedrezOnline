@@ -19,7 +19,7 @@ class Player {
 
   setTurn(turn) {
     this.currentTurn = turn;
-    //this.time = 15;
+
     if (turn) {
       $("#turn").text("Es tu turno");
     } else {

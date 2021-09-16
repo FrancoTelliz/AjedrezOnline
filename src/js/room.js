@@ -32,7 +32,7 @@ init = () => {
     $(".rooms").empty();
 
     data.list.forEach((e) => {
-      $(".rooms").append(`<h5>${e}</h5>`);
+      $(".rooms").append(`<button class="one-room">${e}</button><br>`);
     });
   });
 

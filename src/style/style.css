@@ -18,7 +18,7 @@ body .background-gradient {
   /*background: linear-gradient(72.36deg, #0F3547 1.88%, #004874 53.89%);*/
 
 
-  background: url(/src/image/fondo.jpeg)no-repeat center;
+  background: url(/src/image/fondo.png)no-repeat center;
 
 
  background-size: 100% 100%;
@@ -48,6 +48,56 @@ body .container .wrap header #return {
 body .container .wrap header #return:hover path:nth-of-type(1) {
   transform: translateY(-30px);
 }
+
+/*LO QUE ME PASO NAHUE*/
+body .container .wrap .game .side-bar h4 {
+  font-family: Open Sans;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: 0px;
+  color: #ffffff;
+}
+
+body .container .wrap .game .side-bar h5 {
+  font-family: circe, Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0em;
+  color: #ffffff;
+}
+h1 {
+  font-family: circe, Arial, Helvetica, sans-serif;
+  font-size: 48px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 56px;
+  letter-spacing: 0px;
+  color: #ffffff;
+}
+
+h2 {
+  font-family: circe, Arial, Helvetica, sans-serif;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 32px;
+  letter-spacing: 0em;
+  color: #ffffff;
+}
+h3 {
+  font-family: circe-bold, Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: 0px;
+  color: #ffffff;
+}
+/*HASTA ACA*/
 body .container .wrap header .logo #logo {
   width: 30px;
 }
@@ -99,7 +149,7 @@ body .container .wrap .game .side-bar{
   padding: 1.5rem;
   margin-bottom: 10px;
   border: 2px solid #d0d0d0;
-  border-radius: 10px;
+  border-radius: 5px;
   
 }
 
@@ -114,7 +164,8 @@ body .container .wrap .game .side-bar #black{
 
 body .container .wrap .game .time{
 
-  color: white;
+  color: #DBCE2A;
+
 }
 
 .over{
@@ -138,7 +189,7 @@ body .container .wrap .game .side-history{
   /*background:  linear-gradient(331.7deg, #004874 35.42%, #00AFD3 93.78%);*/
   border: 2px solid #d0d0d0;
   color: white;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 body .container .wrap .game .side-history .title-history {
@@ -225,13 +276,27 @@ body .container .wrap .room #form .newGame {
 body .container .wrap .room #form .newGame button {
   width: 120px;
   height: 40px;
-  background-color: #004874;
+  background-color: #0075B0;
   border: none;
   cursor: pointer;
   border-radius: 5px;
   color: #fff;
   font-weight: 600;
   box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.75);
+  transition: 0.3s;
+}
+
+body .container .wrap .room .one-room {
+  width: 70;
+  height: 30px;
+  background-color: #52AE32;
+  border: none;
+  margin-bottom: 5px;
+  cursor: pointer;
+  border-radius: 5px;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 1.5px 1.5px 2px 0px rgba(0, 0, 0, 0.75);
   transition: 0.3s;
 }
 body .container .wrap .room #form .newGame button:hover {
@@ -310,6 +375,8 @@ body .container .wrap .game #turn .dot-carousel {
 body .container .wrap .game #turn .dot-typing {
   animation: dotTyping 1.5s infinite linear;
 }
+
+
 
 /*  ==============================================  */
 /*  KEYFRAMES                                       */

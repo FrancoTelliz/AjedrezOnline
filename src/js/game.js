@@ -55,7 +55,7 @@ class Game {
       row = game.getRow(e.target.id);
       col = game.getCol(e.target.id);
 
-      if(posicionAnterior == " " && posicionSiguiente != " "){
+      if (posicionAnterior == " " && posicionSiguiente != " ") {
         return;
       }
 
@@ -65,14 +65,12 @@ class Game {
         posicionAnterior = " ";
       }
 
-      
-     // var pieza1 = game.comprobarColor($(`#${row}_${col}`).html());
-
       //SE COMPRUEBA QUE LA CASILLA SELECCIONADA TENGA UNA PIEZA
       if ($(`#${row}_${col}`).html() !== " " || (posicionAnterior !== " " || posicionSiguiente !== " ")) {
+
         //VERIFICA QUE SI SE SELECCIONO OTRA PIEZA DEL MISMO COLOR, RESETEE LAS POSICIONES
-        console.log("Posicion anterior:",posicionAnterior);
-        console.log("Posicion siguiente:",posicionSiguiente);
+        console.log("Posicion anterior:", posicionAnterior);
+        console.log("Posicion siguiente:", posicionSiguiente);
 
         /**
          * 
@@ -88,7 +86,7 @@ class Game {
           }
         }
 
-        /*COMPRUEBA SI ESTA EN JAQUE*/ 
+        /*COMPRUEBA SI ESTA EN JAQUE*/
 
         game.isCheck();
 
@@ -98,30 +96,29 @@ class Game {
 
         $(".table").removeAttr("style");
 
-        //clicks++;
 
         if (posicionAnterior == " " && posicionSiguiente == " " && player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())) {
 
           colAnterior = col;
           rowAnterior = row;
           posicionAnterior = row + "_" + col;
-          
-          if(posicionAnterior != " "){
+
+          if (posicionAnterior != " ") {
             posicionAnteriorAux = posicionAnterior;
-          } 
+          }
           game.updateBoard("#8dba7d", row, col, e.target.id);
 
-        } 
-        
-        if (posicionAnterior != " " && posicionSiguiente == " " ) {
+        }
+
+        if (posicionAnterior != " " && posicionSiguiente == " ") {
 
           posicionSiguiente = row + "_" + col;
 
-          if(posicionSiguiente != " "){
+          if (posicionSiguiente != " ") {
             posicionSiguienteAux = posicionSiguiente;
           }
 
-          if(posicionAnterior == posicionSiguiente ){
+          if (posicionAnterior == posicionSiguiente) {
             posicionSiguiente = " ";
             return;
           }
@@ -129,10 +126,8 @@ class Game {
           rowSiguiente = row;
           game.updateBoard("#52AE32", row, col, e.target.id);
 
-        } 
+        }
 
-
-       
         if (posicionAnterior != " " && posicionSiguiente != " ") {
           const from = letter[colAnterior] + number[rowAnterior];
           const to = letter[colSiguiente] + number[rowSiguiente];
@@ -144,49 +139,43 @@ class Game {
         } else {
           player.setTurn(true);
         }
-
-    
       }
-
-
 
       /**
        *
        * Este socket escucha si el movimiento que se quiere hacer es permitido
        */
-      
+
       socket.on("movementChecked", (data) => {
 
         if (data.checked == true) {
-          
+
           isStarting = false;
           clearInterval(timer);
-          if(posicionAnterior != " " && posicionSiguiente !=" "){
+          if (posicionAnterior != " " && posicionSiguiente != " ") {
             clickHandler(e);
-          }else{
-             
-              var i, j, i2 , j2
-              
+          } else {
 
-              var posicion1 = posicionAnteriorAux.split("");
-              var posicion2 = posicionSiguienteAux.split("");
+            var i, j, i2, j2
 
-              i = parseInt(posicion1[0]);
-              j = parseInt(posicion1[2]);
-            
-              i2 = parseInt(posicion2[0]);
-              j2 = parseInt(posicion2[2]); 
-            
-          
-             if((i + j) % 2 == 0) {
+            var posicion1 = posicionAnteriorAux.split("");
+            var posicion2 = posicionSiguienteAux.split("");
+
+            i = parseInt(posicion1[0]);
+            j = parseInt(posicion1[2]);
+
+            i2 = parseInt(posicion2[0]);
+            j2 = parseInt(posicion2[2]);
+
+            if ((i + j) % 2 == 0) {
               $(`#${posicionAnteriorAux}`).css("background-color", `${theme.light}`);
-            }else {
+            } else {
               $(`#${posicionAnteriorAux}`).css("background-color", `${theme.dark}`);
             }
-            
-            if((i2 + j2) % 2 == 0) {
+
+            if ((i2 + j2) % 2 == 0) {
               $(`#${posicionSiguienteAux}`).css("background-color", `${theme.light}`);
-            }else {
+            } else {
               $(`#${posicionSiguienteAux}`).css("background-color", `${theme.dark}`);
             }
           }
@@ -212,13 +201,10 @@ class Game {
 
       game.playTurn(e.target);
 
-      /*   $(`#${posicionSiguiente}`).html($(`#${posicionAnterior}`).html());
-      $(`#${posicionAnterior}`).html(``); */
       game.clearBoard(posicionAnterior, posicionSiguiente);
       game.placePieces();
       clicks = 0;
 
-      //game.updateBoard(player.getColor(), row, col, e.target.id);
       socket.on("checkMate", (data) => {
         if (data.value) {
           var color = data.color == "white" ? "black" : "white";
@@ -248,7 +234,7 @@ class Game {
         $(".over").html(`<p class="p-history">${data}</p>`);
       });
 
-     
+
     }
     game.createTiles(clickHandlerChecked);
   }
@@ -295,23 +281,6 @@ class Game {
     socket.emit("placePieces");
     game.clearAllPieces();
     socket.on("places", (data) => {
-      /*  Object.keys(data.chess.pieces).forEach(position => {
-        for (let i = 0; i < 8; i++) {
-          for (let j = 0; j < 8; j++) {
-            i_j = letter[i] + number[j];
-            idCell = j + "_" + i;
-            
-            if (position == i_j) {
-
-              game.printPieces(data.chess.pieces[position], idCell)
-  
-            } else {
-              
-            }
-          }
-
-        }
-      }); */
 
       Object.keys(data.chess.pieces).forEach((position) => {
         var posicion = position.split("");
@@ -404,9 +373,8 @@ class Game {
     this.createGameBoard();
   }
 
-   updateBoard(color, row, col, tile) {
+  updateBoard(color, row, col, tile) {
     $(`#${tile}`).css("backgroundColor", `${color}`);
-    //.prop("disabled", true);
     this.board[row][col] = color[0];
     this.moves++;
   }
@@ -456,12 +424,10 @@ class Game {
     const clickedTile = $(tile).attr("id");
     const previusTile = game.getPosicionAnterior();
     const nextTile = game.getPosicionSiguiente();
-    console.log("playturn:" + game.getPosicionAnterior());
     const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
     const number = [8, 7, 6, 5, 4, 3, 2, 1];
     const from = letter[colAnterior] + number[rowAnterior];
     const to = letter[colSiguiente] + number[rowSiguiente];
-    console.log("entra a playTurn");
     socket.emit("turn", {
       previus: [game.getRowAnterior(), game.getColAnterior()],
       next: [game.getRowSiguiente(), game.getColSiguiente()],
@@ -519,7 +485,6 @@ class Game {
 
   winner(color) {
     const message = color;
-    console.log("color del jugador: ", message);
     socket.emit("end", {
       room: this.getRoom(),
       message: message,
@@ -650,23 +615,4 @@ class Game {
     }
     return color;
   }
-
-  /* checkWinner() {
-    let color = player.getColor()[0];
-
-    this.horizontal(color);
-    this.vertical(color);
-    this.diagonal(color);
-    this.diagonalReverse(color);
-
-    if (this.checkDraw()) {
-      const message = "¡Empate!";
-
-      socket.emit("end", {
-        room: this.getRoom(),
-        message: message,
-      });
-      this.endGameMessage(message);
-    }
-  } */
 }
