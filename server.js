@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 
 const jsChessEngine = require("js-chess-engine");
-var chessgame ;// new jsChessEngine.Game();
+var chessgame;
 
 const app = express();
 const httpServer = require("http").Server(app);
@@ -27,7 +27,7 @@ io.on("connection", (socket) => {
     roomsList.push(room);
 
     socket.join(room);
-    //chessgame = new jsChessEngine.Game();
+
     socket.emit("newGame", { room: room });
   });
 
@@ -39,13 +39,16 @@ io.on("connection", (socket) => {
 
     var room = io.sockets.adapter.rooms[data.room];
 
-    if (room.length !== 1) {
-      socket.emit("err", { message: "Partida comenzada" });
-    } else {
-      socket.join(data.room);
-      socket.broadcast.to(data.room).emit("playerOne");
-      socket.emit("playerTwo", { room: data.room });
+    if (room !== undefined) {
+      if (room.length !== 1) {
+        socket.emit("err", { message: "Partida comenzada" });
+      } else {
+        socket.join(data.room);
+        socket.broadcast.to(data.room).emit("playerOne");
+        socket.emit("playerTwo", { room: data.room });
+      }
     }
+
   });
 
   /**
@@ -75,23 +78,7 @@ io.on("connection", (socket) => {
       });
       console.log("MOVIMIENTO ", data.from, data.to, " CORRECTO");
 
-      let movements = [];
-      let cont = 0;
-
-      /*
-      chessgame.getHistory().forEach((mov) => {
-
-         getTo = mov.from;
-        movements.push({
-          from: mov.from,
-          to: mov.to,
-          player: mov.configuration.turn,
-          piece: mov.configuration.pieces[getTo],
-          number: cont++,
-        });
-   */
-
-      if(getCheckMate()){
+      if (getCheckMate()) {
         socket.broadcast.emit("checkMate", {
           value: true,
           color: getColorPlayer(),
@@ -99,14 +86,14 @@ io.on("connection", (socket) => {
       }
 
       if (getCheck()) {
-          socket.emit("check", {
-            value: chessgame.exportJson().check,
-            color: getColorPlayer(),
-            position: getCheckKing(),
-          })
+        socket.emit("check", {
+          value: chessgame.exportJson().check,
+          color: getColorPlayer(),
+          position: getCheckKing(),
+        })
       }
 
-      if(getEmpate()){
+      if (getEmpate()) {
         socket.emit("empate", {
           value: true,
         });
@@ -139,7 +126,7 @@ io.on("connection", (socket) => {
       });
       socket.emit("movementIlegal", data);
     }
-   
+
   });
 
   socket.on("end", (data) => {
@@ -166,39 +153,38 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("newGameChess", ()=>{
-     chessgame = new jsChessEngine.Game();
+  socket.on("newGameChess", () => {
+    chessgame = new jsChessEngine.Game();
   });
 
-  socket.on("placePieces", () =>{
-    //console.log(chessgame.exportJson());
+  socket.on("placePieces", () => {
     socket.emit("places", {
       hola: "hola",
       chess: chessgame.exportJson(),
     });
- });
+  });
 
- /**
-  * 
-  * Recibe el pedido de historial y lo envia todos
-  */
- socket.on("requestHistory", (data) => {
-  let movements = [];
-  chessgame.getHistory().forEach(mov => {
+  /**
+   * 
+   * Recibe el pedido de historial y lo envia todos
+   */
+  socket.on("requestHistory", (data) => {
+    let movements = [];
+    chessgame.getHistory().reverse().forEach(mov => {
       geto = mov.from;
       movements.push(
         `<br> ${mov.from} - ${mov.to}`
       )
+    });
+    socket.to(data.room).emit("historyToRoom", movements);
+    socket.emit("historyToGame", movements)
+
+  })
+
+  socket.on("checkServer", (data) => {
+    socket.broadcast.to(data.room).emit("checkPlayer2", data)
   });
-  socket.to(data.room).emit("historyToRoom", movements);
-  socket.emit("historyToGame", movements)
 
-  //socket.to(data.room).emit("historyToRoom", `${chessgame.getHistory()[0].from} - ${chessgame.getHistory()[0].to}`);
-  //socket.emit("historyToGame", `${chessgame.getHistory()[0].from} - ${chessgame.getHistory()[0].to}`)
- })
-
- socket.on("checkServer", (data) => {
-  socket.broadcast.to(data.room).emit("checkPlayer2", data)
 });
 
 });
@@ -209,8 +195,8 @@ function remove(room) {
   if (index !== -1) roomsList.splice(index, 1);
 }
 
-function getCheckMate(){
-  return  chessgame.exportJson().checkMate;
+function getCheckMate() {
+  return chessgame.exportJson().checkMate;
 }
 
 function getEmpate() {
@@ -224,19 +210,19 @@ function getCheck() {
 function getCheckKing() {
   var pieces = chessgame.exportJson().pieces;
   if (getCheck() && (getColorPlayer() == "white")) {
-    return getKeyByValue(pieces,"K")
+    return getKeyByValue(pieces, "K")
   }
-   if (getCheck() && (getColorPlayer() == "black")) {
-     return getKeyByValue(pieces, "k")
-   }
+  if (getCheck() && (getColorPlayer() == "black")) {
+    return getKeyByValue(pieces, "k")
+  }
 }
 
 
 function getKeyByValue(object, value) {
   return Object.keys(object).find(key => object[key] === value);
 }
-function getColorPlayer(){
-  return  chessgame.exportJson().turn;
+function getColorPlayer() {
+  return chessgame.exportJson().turn;
 }
 
 httpServer.listen(PORT);

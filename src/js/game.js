@@ -2,6 +2,8 @@ var timer;
 var clicks = 0;
 var posicionAnterior = " ";
 var posicionSiguiente = " ";
+var posicionAnteriorAux = " ";
+var posicionSiguienteAux = " ";
 var colAnterior = 0;
 var rowAnterior = 0;
 var colSiguiente = 0;
@@ -53,27 +55,40 @@ class Game {
       row = game.getRow(e.target.id);
       col = game.getCol(e.target.id);
 
+      if (posicionAnterior == " " && posicionSiguiente != " ") {
+        return;
+      }
+
       //RESETEO DE POSICIONES
       if (posicionAnterior !== " " && posicionSiguiente !== " ") {
         posicionSiguiente = " ";
         posicionAnterior = " ";
       }
 
-      game.isCheck();
-      var pieza1 = game.comprobarColor($(`#${row}_${col}`).html());
-
       //SE COMPRUEBA QUE LA CASILLA SELECCIONADA TENGA UNA PIEZA
-      if ($(`#${row}_${col}`).html() !== " " || clicks > 0) {
-        //VERIFICA QUE SI SE SELECCIONO OTRA PIEZA DEL MISMO COLOR, RESETEE LOS CLICKS
-        if (clicks == 1 && $(`#${row}_${col}`).html() != " ") {
-          if (
-            player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())
-          ) {
+      if ($(`#${row}_${col}`).html() !== " " || (posicionAnterior !== " " || posicionSiguiente !== " ")) {
+
+        //VERIFICA QUE SI SE SELECCIONO OTRA PIEZA DEL MISMO COLOR, RESETEE LAS POSICIONES
+        console.log("Posicion anterior:", posicionAnterior);
+        console.log("Posicion siguiente:", posicionSiguiente);
+
+        /**
+         * 
+         * COMPROBAR SI EL JUGADOR  QUIERE CAMBIAR DE FICHA 
+        */
+        if (posicionSiguiente == " " && posicionAnterior != " ") {
+
+          if (player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())) {
+
             game.clearFirstPosition(posicionAnterior);
-            clicks = 0;
+            posicionAnterior = " ";
             return;
           }
         }
+
+        /*COMPRUEBA SI ESTA EN JAQUE*/
+
+        game.isCheck();
 
         if (!player.getTurn() || !game) {
           return;
@@ -81,27 +96,39 @@ class Game {
 
         $(".table").removeAttr("style");
 
-        clicks++;
 
-        if (
-          clicks == 1 &&
-          player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())
-        ) {
+        if (posicionAnterior == " " && posicionSiguiente == " " && player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())) {
+
           colAnterior = col;
           rowAnterior = row;
           posicionAnterior = row + "_" + col;
+
+          if (posicionAnterior != " ") {
+            posicionAnteriorAux = posicionAnterior;
+          }
           game.updateBoard("#8dba7d", row, col, e.target.id);
-        } else if (clicks == 2) {
+
+        }
+
+        if (posicionAnterior != " " && posicionSiguiente == " ") {
+
           posicionSiguiente = row + "_" + col;
+
+          if (posicionSiguiente != " ") {
+            posicionSiguienteAux = posicionSiguiente;
+          }
+
+          if (posicionAnterior == posicionSiguiente) {
+            posicionSiguiente = " ";
+            return;
+          }
           colSiguiente = col;
           rowSiguiente = row;
           game.updateBoard("#52AE32", row, col, e.target.id);
-        } else {
-          clicks = 0;
-          game.clearFirstPosition(posicionAnterior);
+
         }
-        console.log("clicks", clicks);
-        if (clicks == 2) {
+
+        if (posicionAnterior != " " && posicionSiguiente != " ") {
           const from = letter[colAnterior] + number[rowAnterior];
           const to = letter[colSiguiente] + number[rowSiguiente];
           console.log(from, to);
@@ -118,17 +145,44 @@ class Game {
        *
        * Este socket escucha si el movimiento que se quiere hacer es permitido
        */
+
       socket.on("movementChecked", (data) => {
-        console.log("recibe");
+
         if (data.checked == true) {
-          console.log("checked", data.checked == true);
-          console.log("checkMate: ", data.checkMate);
+
           isStarting = false;
           clearInterval(timer);
-          clickHandler(e);
+          if (posicionAnterior != " " && posicionSiguiente != " ") {
+            clickHandler(e);
+          } else {
+
+            var i, j, i2, j2
+
+            var posicion1 = posicionAnteriorAux.split("");
+            var posicion2 = posicionSiguienteAux.split("");
+
+            i = parseInt(posicion1[0]);
+            j = parseInt(posicion1[2]);
+
+            i2 = parseInt(posicion2[0]);
+            j2 = parseInt(posicion2[2]);
+
+            if ((i + j) % 2 == 0) {
+              $(`#${posicionAnteriorAux}`).css("background-color", `${theme.light}`);
+            } else {
+              $(`#${posicionAnteriorAux}`).css("background-color", `${theme.dark}`);
+            }
+
+            if ((i2 + j2) % 2 == 0) {
+              $(`#${posicionSiguienteAux}`).css("background-color", `${theme.light}`);
+            } else {
+              $(`#${posicionSiguienteAux}`).css("background-color", `${theme.dark}`);
+            }
+          }
         } else {
           game.clearFirstPosition(posicionAnterior);
-          clicks = 0;
+          posicionAnterior = " ";
+          posicionSiguiente = " ";
         }
       });
     }
@@ -147,13 +201,10 @@ class Game {
 
       game.playTurn(e.target);
 
-      /*   $(`#${posicionSiguiente}`).html($(`#${posicionAnterior}`).html());
-      $(`#${posicionAnterior}`).html(``); */
       game.clearBoard(posicionAnterior, posicionSiguiente);
       game.placePieces();
       clicks = 0;
 
-      //game.updateBoard(player.getColor(), row, col, e.target.id);
       socket.on("checkMate", (data) => {
         if (data.value) {
           var color = data.color == "white" ? "black" : "white";
@@ -175,12 +226,15 @@ class Game {
       isStarting = true;
 
       $(".audioMove")[0].play();
+
       player.setTurn(false);
 
       socket.emit("requestHistory", { room: game.getRoom() });
       socket.on("historyToGame", (data) => {
         $(".over").html(`<p class="p-history">${data}</p>`);
       });
+
+
     }
     game.createTiles(clickHandlerChecked);
   }
@@ -227,23 +281,6 @@ class Game {
     socket.emit("placePieces");
     game.clearAllPieces();
     socket.on("places", (data) => {
-      /*  Object.keys(data.chess.pieces).forEach(position => {
-        for (let i = 0; i < 8; i++) {
-          for (let j = 0; j < 8; j++) {
-            i_j = letter[i] + number[j];
-            idCell = j + "_" + i;
-            
-            if (position == i_j) {
-
-              game.printPieces(data.chess.pieces[position], idCell)
-  
-            } else {
-              
-            }
-          }
-
-        }
-      }); */
 
       Object.keys(data.chess.pieces).forEach((position) => {
         var posicion = position.split("");
@@ -338,7 +375,6 @@ class Game {
 
   updateBoard(color, row, col, tile) {
     $(`#${tile}`).css("backgroundColor", `${color}`);
-    //.prop("disabled", true);
     this.board[row][col] = color[0];
     this.moves++;
   }
@@ -388,12 +424,10 @@ class Game {
     const clickedTile = $(tile).attr("id");
     const previusTile = game.getPosicionAnterior();
     const nextTile = game.getPosicionSiguiente();
-    console.log("playturn:" + game.getPosicionAnterior());
     const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
     const number = [8, 7, 6, 5, 4, 3, 2, 1];
     const from = letter[colAnterior] + number[rowAnterior];
     const to = letter[colSiguiente] + number[rowSiguiente];
-    console.log("entra a playTurn");
     socket.emit("turn", {
       previus: [game.getRowAnterior(), game.getColAnterior()],
       next: [game.getRowSiguiente(), game.getColSiguiente()],
@@ -451,7 +485,6 @@ class Game {
 
   winner(color) {
     const message = color;
-    console.log("color del jugador: ", message);
     socket.emit("end", {
       room: this.getRoom(),
       message: message,
@@ -582,23 +615,4 @@ class Game {
     }
     return color;
   }
-
-  /* checkWinner() {
-    let color = player.getColor()[0];
-
-    this.horizontal(color);
-    this.vertical(color);
-    this.diagonal(color);
-    this.diagonalReverse(color);
-
-    if (this.checkDraw()) {
-      const message = "¡Empate!";
-
-      socket.emit("end", {
-        room: this.getRoom(),
-        message: message,
-      });
-      this.endGameMessage(message);
-    }
-  } */
 }
