@@ -187,7 +187,6 @@ io.on("connection", (socket) => {
 
 });
 
-});
 
 
 function remove(room) {

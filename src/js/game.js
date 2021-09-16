@@ -66,20 +66,23 @@ class Game {
       }
 
       //SE COMPRUEBA QUE LA CASILLA SELECCIONADA TENGA UNA PIEZA
-      if ($(`#${row}_${col}`).html() !== " " || (posicionAnterior !== " " || posicionSiguiente !== " ")) {
-
+      if (
+        $(`#${row}_${col}`).html() !== " " ||
+        posicionAnterior !== " " ||
+        posicionSiguiente !== " "
+      ) {
         //VERIFICA QUE SI SE SELECCIONO OTRA PIEZA DEL MISMO COLOR, RESETEE LAS POSICIONES
         console.log("Posicion anterior:", posicionAnterior);
         console.log("Posicion siguiente:", posicionSiguiente);
 
         /**
-         * 
-         * COMPROBAR SI EL JUGADOR  QUIERE CAMBIAR DE FICHA 
-        */
+         *
+         * COMPROBAR SI EL JUGADOR  QUIERE CAMBIAR DE FICHA
+         */
         if (posicionSiguiente == " " && posicionAnterior != " ") {
-
-          if (player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())) {
-
+          if (
+            player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())
+          ) {
             game.clearFirstPosition(posicionAnterior);
             posicionAnterior = " ";
             return;
@@ -96,9 +99,11 @@ class Game {
 
         $(".table").removeAttr("style");
 
-
-        if (posicionAnterior == " " && posicionSiguiente == " " && player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())) {
-
+        if (
+          posicionAnterior == " " &&
+          posicionSiguiente == " " &&
+          player.getColor() == game.comprobarColor($(`#${row}_${col}`).html())
+        ) {
           colAnterior = col;
           rowAnterior = row;
           posicionAnterior = row + "_" + col;
@@ -107,11 +112,9 @@ class Game {
             posicionAnteriorAux = posicionAnterior;
           }
           game.updateBoard("#8dba7d", row, col, e.target.id);
-
         }
 
         if (posicionAnterior != " " && posicionSiguiente == " ") {
-
           posicionSiguiente = row + "_" + col;
 
           if (posicionSiguiente != " ") {
@@ -125,7 +128,6 @@ class Game {
           colSiguiente = col;
           rowSiguiente = row;
           game.updateBoard("#52AE32", row, col, e.target.id);
-
         }
 
         if (posicionAnterior != " " && posicionSiguiente != " ") {
@@ -147,16 +149,13 @@ class Game {
        */
 
       socket.on("movementChecked", (data) => {
-
         if (data.checked == true) {
-
           isStarting = false;
           clearInterval(timer);
           if (posicionAnterior != " " && posicionSiguiente != " ") {
             clickHandler(e);
           } else {
-
-            var i, j, i2, j2
+            var i, j, i2, j2;
 
             var posicion1 = posicionAnteriorAux.split("");
             var posicion2 = posicionSiguienteAux.split("");
@@ -168,15 +167,27 @@ class Game {
             j2 = parseInt(posicion2[2]);
 
             if ((i + j) % 2 == 0) {
-              $(`#${posicionAnteriorAux}`).css("background-color", `${theme.light}`);
+              $(`#${posicionAnteriorAux}`).css(
+                "background-color",
+                `${theme.light}`
+              );
             } else {
-              $(`#${posicionAnteriorAux}`).css("background-color", `${theme.dark}`);
+              $(`#${posicionAnteriorAux}`).css(
+                "background-color",
+                `${theme.dark}`
+              );
             }
 
             if ((i2 + j2) % 2 == 0) {
-              $(`#${posicionSiguienteAux}`).css("background-color", `${theme.light}`);
+              $(`#${posicionSiguienteAux}`).css(
+                "background-color",
+                `${theme.light}`
+              );
             } else {
-              $(`#${posicionSiguienteAux}`).css("background-color", `${theme.dark}`);
+              $(`#${posicionSiguienteAux}`).css(
+                "background-color",
+                `${theme.dark}`
+              );
             }
           }
         } else {
@@ -233,8 +244,6 @@ class Game {
       socket.on("historyToGame", (data) => {
         $(".over").html(`<p class="p-history">${data}</p>`);
       });
-
-
     }
     game.createTiles(clickHandlerChecked);
   }
@@ -274,14 +283,12 @@ class Game {
 
   placePieces() {
     const letter = ["A", "B", "C", "D", "E", "F", "G", "H"];
-
     const number = [8, 7, 6, 5, 4, 3, 2, 1, 0];
     var i_j;
     var idCell;
     socket.emit("placePieces");
     game.clearAllPieces();
     socket.on("places", (data) => {
-
       Object.keys(data.chess.pieces).forEach((position) => {
         var posicion = position.split("");
 
@@ -341,19 +348,17 @@ class Game {
     timer = setInterval(() => {
       var time = player.getTime();
       --player.time;
-
       $(".time").html(`⧗Tiempo: ${game.secondsToString(player.time)}`);
-
+      socket.on("end", (data) => {
+        if (data.message) clearInterval(timer);
+      });
       if (player.getTime() == 0) {
         let message;
-
         message = player.getColor() == "white" ? "black" : "white";
-
         socket.emit("end", {
           room: game.getRoom(),
           message: message,
         });
-
         game.endGameMessage(message);
         clearInterval(timer);
       }
@@ -369,7 +374,10 @@ class Game {
     $("#logo").css("display", "none");
     $(".game").css("display", "block");
     $("#roomID").html(message);
-    $(".background-gradient").css("background", "linear-gradient(72.36deg, #0F3547 1.88%, #004874 53.89%)");
+    $(".background-gradient").css(
+      "background",
+      "linear-gradient(72.36deg, #0F3547 1.88%, #004874 53.89%)"
+    );
     this.createGameBoard();
   }
 
