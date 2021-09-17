@@ -13,6 +13,7 @@ var j_jaque = 0;
 var i_j_jaque = "";
 var is_jaque = false;
 var isStarting = false;
+var isFinished = false;
 
 const theme = {
   light: "#EFF3F4",
@@ -459,17 +460,20 @@ class Game {
     clearInterval(timer);
     $(".tile").attr("disabled", true);
 
-    if (message == player.color) {
-      message = "ganaste!";
-      printMessage();
-    } else if (message.includes("desconectado")) {
-      $("#turn").text(message);
-    } else if (message.includes("Tablas")) {
-      message = "tablas";
-      printMessage();
-    } else {
-      message = "perdiste";
-      printMessage();
+    if(!isFinished){
+      if (message == player.color) {
+        message = "ganaste!";
+        printMessage();
+      } else if (message.includes("desconectado")) {
+        $("#turn").text(message);
+      } else if (message.includes("Tablas")) {
+        message = "tablas";
+        printMessage();
+      } else {
+        message = "perdiste";
+        printMessage();
+      }
+      isFinished = true;
     }
 
     function printMessage() {
