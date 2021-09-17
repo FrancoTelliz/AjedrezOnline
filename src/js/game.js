@@ -462,7 +462,7 @@ class Game {
 
     if(!isFinished){
       if (message == player.color) {
-        message = "ganaste!";
+        message = "ganaste";
         printMessage();
       } else if (message.includes("desconectado")) {
         $("#turn").text(message);
